@@ -590,6 +590,9 @@ begin
     update public.strategies set status = 'rejected' where decision_id = d.id and status = 'proposed';
     update public.touches set status = 'cancelled' where decision_id = d.id and status = 'pending_approval';
     update public.skills set status = 'rejected' where proposed_decision_id = d.id and status = 'proposed';
+    if to_regclass('public.outbound_changes') is not null then
+      execute 'update public.outbound_changes set status = ''cancelled'' where decision_id = $1 and status = ''pending_approval''' using d.id;
+    end if;
     return 'rejected';
   end if;
 
@@ -607,6 +610,16 @@ begin
     v_payload := case when p_outcome = 'edited' then p_edited_payload->'value' else d.payload->'value' end;
     perform ea_private.execute_field_update(d, v_payload);
     return 'applied';
+  elsif d.action = 'update_external_field' and d.status = 'queued' then
+    -- sidecar mode (0007): the reviewer must own or manage the record in the mirror
+    select e.owner_sales_id into v_owner from public.external_subjects e
+    where e.subject_type = d.subject_type and e.subject_id = d.subject_id;
+    if not ea_private.can_edit(v_owner) then perform ea_private.raise_denied('reviewer cannot edit this record'); end if;
+    update public.outbound_changes set status = 'approved', approved_by = auth.uid(),
+      value = case when p_outcome = 'edited' then coalesce(p_edited_payload->'value', value) else value end
+    where decision_id = d.id and status = 'pending_approval';
+    update public.decisions set status = 'approved' where id = d.id;
+    return 'approved';
   elsif d.action = 'schedule_touch' and d.status = 'queued' then
     update public.touches set status = 'scheduled',
       purpose = coalesce(p_edited_payload->>'purpose', purpose),

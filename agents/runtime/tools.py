@@ -105,6 +105,17 @@ TOOLS: dict[str, dict] = {
                  "p_sender_type": "sender_type", "p_purpose": "purpose", "p_content_ref": "content_ref",
                  "p_scheduled_for": "scheduled_for"},
     },
+    "propose_external_update": {
+        "rpc": "propose_external_update", "run_arg": "p_run_id",
+        "description": "Sidecar mode: propose a change to one allowlisted field in Salesforce or HubSpot, citing an "
+                       "update_external_field decision (payload: system, object, field, value) with strong evidence. "
+                       "Approved at level 3 and above, waits for the record owner at level 2. A writeback worker sends it.",
+        "properties": {"decision_id": {"type": "integer"}, "system": {"type": "string", "enum": ["salesforce", "hubspot"]},
+                       "object": {"type": "string"}, "record_id": {"type": "string"}, "field": {"type": "string"}, "value": {}},
+        "required": ["decision_id", "system", "object", "record_id", "field", "value"],
+        "args": {"p_decision_id": "decision_id", "p_system": "system", "p_object": "object", "p_record_id": "record_id",
+                 "p_field": "field", "p_value": "value"},
+    },
     "create_commitment": {
         "rpc": "create_commitment", "run_arg": "p_run_id",
         "description": "Record something our side promised the customer, pointing to the evidence of the promise.",

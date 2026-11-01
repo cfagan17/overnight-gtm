@@ -1,0 +1,1 @@
+{"status": 0, "result": {"name": "OpportunityLineItem", "fields": [{"name": "Id"}, {"name": "OpportunityId"}, {"name": "Product2Id"}, {"name": "Quantity"}, {"name": "TotalPrice"}]}}

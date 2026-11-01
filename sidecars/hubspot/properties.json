@@ -1,0 +1,8 @@
+[
+  {"objectType": "deals", "name": "ea_decision_id", "label": "EA Decision Id", "type": "string", "fieldType": "text",
+   "groupName": "dealinformation", "description": "The earned-autonomy decision behind the last agent change. Set only by the writeback worker."},
+  {"objectType": "contacts", "name": "ea_decision_id", "label": "EA Decision Id", "type": "string", "fieldType": "text",
+   "groupName": "contactinformation", "description": "The earned-autonomy decision behind the last agent change. Set only by the writeback worker."},
+  {"objectType": "companies", "name": "ea_territory_key", "label": "EA Territory Key", "type": "string", "fieldType": "text",
+   "groupName": "companyinformation", "description": "Key mapped to an earned-autonomy territory (sidecar_territory_map)."}
+]

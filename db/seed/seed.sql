@@ -178,3 +178,8 @@ insert into public.contact_notes (contact_id, text, sales_id)
 select ct.id, 'Call notes: budget approved for Q1', ct.sales_id from public.contacts ct where ct.first_name = 'Jordan';
 insert into public.tasks (contact_id, type, text, sales_id, due_date)
 select ct.id, 'call', 'Follow up on pricing', ct.sales_id, now() + interval '3 days' from public.contacts ct where ct.first_name = 'Jordan';
+
+-- Sidecar mode grant (used only when the ledger lives in Salesforce or HubSpot).
+insert into public.agent_grants (agent_definition_id, tool, scope, approved_by, approved_at)
+select id, 'propose_external_update', '{"all": true}', '00000000-0000-0000-0000-000000000001', now()
+from public.agent_definitions where name in ('conversation-capture', 'deal-inspection');

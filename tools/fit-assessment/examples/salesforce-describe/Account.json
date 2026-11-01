@@ -1,0 +1,1 @@
+{"status": 0, "result": {"name": "Account", "fields": [{"name": "Id"}, {"name": "Name"}, {"name": "OwnerId"}, {"name": "BillingState"}, {"name": "Industry"}]}}

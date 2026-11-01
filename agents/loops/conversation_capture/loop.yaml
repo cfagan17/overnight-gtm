@@ -18,8 +18,10 @@ tools:
 - apply_field_update
 - create_commitment
 - escalate
+- propose_external_update
 writes: evidence, commitments, decisions proposing field updates
 promotion_metric: field accuracy on the replay set; rep correction rate
 input_example: '{"company_id": 123, "deal_id": 456, "transcript": "...", "source_uri": "..."}'
 prompt: prompt.md
 prompt_version: v1
+sidecar_note: In sidecar mode use propose_external_update instead of apply_field_update; the ledger is in Salesforce or HubSpot.

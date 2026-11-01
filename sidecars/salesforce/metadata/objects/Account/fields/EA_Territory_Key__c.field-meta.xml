@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>EA_Territory_Key__c</fullName>
+    <label>EA Territory Key</label>
+    <description>Key mapped to an earned-autonomy territory (sidecar_territory_map). Fill from your territory model, or point the sidecar at an existing field with --territory-field.</description>
+    <type>Text</type>
+    <length>80</length>
+    <required>false</required>
+</CustomField>
