@@ -1,0 +1,20 @@
+loop: partner_intelligence
+agent: partner-intelligence
+job: Review partner activity and the ecosystem; propose partner plays and new partners.
+trigger: weekly, and on partner activity
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- partner-strategy
+tools:
+- search_evidence
+- record_evidence
+- propose_decision
+- propose_strategy
+- escalate
+writes: evidence, proposed partner strategies, new-partner candidates
+promotion_metric: accepted proposals; partner-sourced pipeline vs holdout
+input_example: '{"partner_id": 3} or {"scan": "ecosystem"}'
+prompt: prompt.md
+prompt_version: v1

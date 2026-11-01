@@ -1,0 +1,6 @@
+{
+  "hooks": {
+    "PreToolUse": [{"matcher": ".*", "hooks": [{"type": "command", "command": "python3 agents/hooks/claude_code_capture.py"}]}],
+    "PostToolUse": [{"matcher": ".*", "hooks": [{"type": "command", "command": "python3 agents/hooks/claude_code_capture.py"}]}]
+  }
+}

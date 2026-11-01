@@ -1,0 +1,19 @@
+loop: comp_ops
+agent: comp-ops
+job: Propose credit splits and payout calculations for one pay period.
+trigger: each pay period
+starting_level: 1
+max_level: 2
+skills:
+- evidence
+- comp-credit
+tools:
+- search_evidence
+- record_evidence
+- propose_decision
+- escalate
+writes: proposed credit splits and payouts, as decisions
+promotion_metric: disputes per period; zero unreviewed payouts
+input_example: '{"period": "2026-10"}'
+prompt: prompt.md
+prompt_version: v1

@@ -1,0 +1,19 @@
+loop: product_feedback
+agent: product-feedback
+job: Theme product feedback from conversations for the product team.
+trigger: each conversation that mentions the product
+starting_level: 2
+max_level: 4
+skills:
+- evidence
+- product-feedback
+tools:
+- search_evidence
+- record_evidence
+- propose_decision
+- escalate
+writes: themed feedback with counts and sources
+promotion_metric: share of themes the product team marks useful
+input_example: '{"since": "2026-10-26"}'
+prompt: prompt.md
+prompt_version: v1

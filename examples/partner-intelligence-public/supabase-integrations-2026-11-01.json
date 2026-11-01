@@ -1,0 +1,217 @@
+{
+  "source": "https://supabase.com/partners/integrations",
+  "captured_on": "2026-11-01",
+  "capture_note": "The page states 119 partners but rendered 37 to the fetch used here. This is a partial, public snapshot. Re-capture before relying on it.",
+  "listings": [
+    {
+      "partner": "BigQuery",
+      "category": "Foreign Data Wrapper",
+      "featured": true
+    },
+    {
+      "partner": "ClickHouse",
+      "category": "Data Platform",
+      "featured": true
+    },
+    {
+      "partner": "ClickHouse",
+      "category": "Foreign Data Wrapper",
+      "featured": true
+    },
+    {
+      "partner": "CloudFlare",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "CloudFlare",
+      "category": "Foreign Data Wrapper",
+      "featured": true
+    },
+    {
+      "partner": "Dreambase",
+      "category": "Data Platform",
+      "featured": true
+    },
+    {
+      "partner": "Firebase",
+      "category": "Foreign Data Wrapper",
+      "featured": true
+    },
+    {
+      "partner": "Grafana",
+      "category": "Observability",
+      "featured": true
+    },
+    {
+      "partner": "Marmelab",
+      "category": "App Templates",
+      "featured": true
+    },
+    {
+      "partner": "Marmelab",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "PowerSync",
+      "category": "Caching / Offline-First",
+      "featured": true
+    },
+    {
+      "partner": "Resend",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "Stripe",
+      "category": "Foreign Data Wrapper",
+      "featured": true
+    },
+    {
+      "partner": "Trigger.dev",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "Vercel",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "Windmill Labs",
+      "category": "DevTools",
+      "featured": true
+    },
+    {
+      "partner": "Springtail",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "Windsor.ai",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "Zuplo",
+      "category": "API",
+      "featured": false
+    },
+    {
+      "partner": "Google Gemini",
+      "category": "AI",
+      "featured": false
+    },
+    {
+      "partner": "Deltecs Infotech",
+      "category": "Low-Code",
+      "featured": false
+    },
+    {
+      "partner": "Internal",
+      "category": "Low-Code",
+      "featured": false
+    },
+    {
+      "partner": "Bemi",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "CipherStash",
+      "category": "Security",
+      "featured": false
+    },
+    {
+      "partner": "Clutch",
+      "category": "Low-Code",
+      "featured": false
+    },
+    {
+      "partner": "Stacksync",
+      "category": "API",
+      "featured": false
+    },
+    {
+      "partner": "Perplexity",
+      "category": "AI",
+      "featured": false
+    },
+    {
+      "partner": "AutoSend",
+      "category": "DevTools",
+      "featured": false
+    },
+    {
+      "partner": "ILLA",
+      "category": "Low-Code",
+      "featured": false
+    },
+    {
+      "partner": "Apache Software Foundation",
+      "category": "Foreign Data Wrapper",
+      "featured": false
+    },
+    {
+      "partner": "Invertase",
+      "category": "DevTools",
+      "featured": false
+    },
+    {
+      "partner": "Infisical",
+      "category": "DevTools",
+      "featured": false
+    },
+    {
+      "partner": "Clerk",
+      "category": "Auth",
+      "featured": false
+    },
+    {
+      "partner": "Clerk",
+      "category": "Foreign Data Wrapper",
+      "featured": false
+    },
+    {
+      "partner": "Auth0",
+      "category": "Auth",
+      "featured": false
+    },
+    {
+      "partner": "Auth0",
+      "category": "Foreign Data Wrapper",
+      "featured": false
+    },
+    {
+      "partner": "Astrato Analytics",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "BerriAI",
+      "category": "DevTools",
+      "featured": false
+    },
+    {
+      "partner": "Readyset",
+      "category": "Caching / Offline-First",
+      "featured": false
+    },
+    {
+      "partner": "Byteline Sync",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "Buster",
+      "category": "Data Platform",
+      "featured": false
+    },
+    {
+      "partner": "ParadeDB",
+      "category": "DevTools",
+      "featured": false
+    }
+  ]
+}

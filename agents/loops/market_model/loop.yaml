@@ -1,0 +1,20 @@
+loop: market_model
+agent: market-model
+job: Score accounts against the ideal customer profile and keep the profile honest.
+trigger: weekly, and when new enrichment data lands
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- market-model
+tools:
+- get_account_context
+- search_evidence
+- record_evidence
+- propose_decision
+- escalate
+writes: evidence (inferred scores), decisions proposing ICP changes
+promotion_metric: win rate of the top-scored decile vs the rest, on holdout accounts
+input_example: '{"company_ids": [..]}'
+prompt: prompt.md
+prompt_version: v1

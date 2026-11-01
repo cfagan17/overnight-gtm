@@ -32,8 +32,9 @@ create or replace function ea_private.can_see_subject(p_type text, p_id text) re
 language plpgsql stable security definer set search_path = '' as $$
 declare v_num bigint;
 begin
-  -- Skills and loops are org-wide subjects (operating design proposals).
-  if p_type in ('skill','loop') then return ea_private.current_role_name() <> 'none'; end if;
+  -- Org-wide subjects: skills and loops (operating design), territories (the carve is public
+  -- inside the company), and partners (including candidates that are not partners yet).
+  if p_type in ('skill','loop','territory','partner') then return ea_private.current_role_name() <> 'none'; end if;
   if p_id ~ '^[0-9]+$' then v_num := p_id::bigint; end if;
   if v_num is not null then
     if p_type = 'company' and exists (select 1 from public.companies where id = v_num) then
@@ -42,8 +43,6 @@ begin
       return ea_private.can_see_deal(v_num);
     elsif p_type = 'contact' and exists (select 1 from public.contacts where id = v_num) then
       return ea_private.can_see_contact(v_num);
-    elsif p_type = 'partner' and exists (select 1 from public.partners where id = v_num) then
-      return ea_private.current_role_name() <> 'none';
     end if;
   end if;
   return coalesce((select ea_private.can_see(e.owner_sales_id, e.territory_id)

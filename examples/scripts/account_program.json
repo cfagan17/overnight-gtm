@@ -1,0 +1,26 @@
+{
+  "about": "Scripted tool calls for the account program loop. Exercises the agent contract end to end. A live model chooses its own calls; this file only proves the plumbing and the database checks.",
+  "steps": [
+    {"tool": "get_account_context", "input": {"company_id": "${input.company_id}"}, "save_as": "ctx"},
+    {"tool": "record_evidence", "input": {"subject_type": "company", "subject_id": "${input.company_id}", "kind": "product_usage",
+      "claim": "Active projects on the trial grew from 3 to 7 in six weeks", "source_uri": "telemetry://trial/projects?window=6w",
+      "observed_at": "2026-10-30T12:00:00Z"}, "save_as": "ev1"},
+    {"tool": "record_evidence", "input": {"subject_type": "company", "subject_id": "${input.company_id}", "kind": "web_page",
+      "claim": "Careers page lists four open data engineering roles", "source_uri": "https://example.invalid/careers",
+      "observed_at": "2026-10-29T09:00:00Z"}, "save_as": "ev2"},
+    {"tool": "propose_decision", "input": {"action": "propose_strategy", "subject_type": "company", "subject_id": "${input.company_id}",
+      "rationale": "Trial usage more than doubled in six weeks; engage the Head of Data before the trial ends.",
+      "evidence_ids": ["${ev1}"]}, "save_as": "dec"},
+    {"tool": "propose_strategy", "input": {"decision_id": "${dec}", "subject_type": "company", "subject_id": "${input.company_id}",
+      "plan": {"why_now": [{"claim": "Trial projects grew from 3 to 7 in six weeks", "evidence": ["${ev1}"]}],
+               "entry_points": [{"contact_id": "${ctx.contacts.1.id}", "reason": "Head of Data owns the trial", "evidence": ["${ev1}"]}],
+               "sender": {"type": "rep", "reason": "Enterprise account; reviewers have preferred a human first touch"},
+               "channel_and_sequence": [{"step": 1, "channel": "email", "purpose": "Share a scale benchmark tied to their growth"},
+                                        {"step": 2, "channel": "meeting", "purpose": "Architecture review with an SE"}],
+               "risks": ["Growth may be one team's project, not company-wide adoption"],
+               "what_would_change_it": "Usage flat for three weeks, or the Head of Data leaves",
+               "open_questions": ["Hiring for data engineers (weak evidence, web page) suggests the team is growing; ask."]}},
+     "save_as": "strategy"}
+  ],
+  "final": "Proposed strategy version for review. One weak signal is listed as a question, not a claim."
+}

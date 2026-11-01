@@ -1,0 +1,21 @@
+loop: post_sale_health
+agent: post-sale-health
+job: Score one customer's health and flag churn risk or expansion.
+trigger: daily on usage and support data
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- health-score
+tools:
+- get_account_context
+- search_evidence
+- record_evidence
+- propose_decision
+- create_commitment
+- escalate
+writes: evidence (health score), decisions flagging churn or expansion
+promotion_metric: churn flagged 90+ days ahead as a share of all churn
+input_example: '{"company_id": 123}'
+prompt: prompt.md
+prompt_version: v1

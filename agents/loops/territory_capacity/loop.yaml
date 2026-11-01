@@ -1,0 +1,19 @@
+loop: territory_capacity
+agent: territory-capacity
+job: Propose the territory carve and capacity model.
+trigger: each planning cycle, and on large hires or exits
+starting_level: 1
+max_level: 2
+skills:
+- evidence
+- territory-method
+tools:
+- search_evidence
+- record_evidence
+- propose_decision
+- escalate
+writes: a proposed carve, balance report and capacity model, as one decision
+promotion_metric: spread of territory potential; attainment spread after the cycle
+input_example: '{"plan_year": 2027}'
+prompt: prompt.md
+prompt_version: v1

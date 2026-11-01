@@ -1,0 +1,18 @@
+loop: forecast
+agent: forecast
+job: Make an independent forecast call by segment with reasons.
+trigger: weekly, after the forecast snapshot
+starting_level: 0
+max_level: 3
+skills:
+- evidence
+- forecast-method
+tools:
+- search_evidence
+- record_evidence
+- escalate
+writes: an independent forecast call by segment, recorded as inferred evidence on the territory
+promotion_metric: error vs actuals, compared with the human call
+input_example: '{"snapshot_week": "2026-11-02"}'
+prompt: prompt.md
+prompt_version: v1

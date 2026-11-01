@@ -1,0 +1,23 @@
+loop: account_program
+agent: account-program
+job: Write the approach plan for one account.
+trigger: new target account, a strong signal, or a strategy older than 30 days
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- account-plan
+- meddpicc
+tools:
+- get_account_context
+- search_evidence
+- get_policies
+- record_evidence
+- propose_decision
+- propose_strategy
+- escalate
+writes: evidence, one decision, one proposed strategy version
+promotion_metric: accepted-as-is rate; meetings booked vs holdout
+input_example: '{"company_id": 123}'
+prompt: prompt.md
+prompt_version: v1

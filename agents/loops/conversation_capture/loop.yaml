@@ -1,0 +1,25 @@
+loop: conversation_capture
+agent: conversation-capture
+job: Turn one conversation into evidence, commitments and proposed field updates.
+trigger: a call, meeting or email thread ends
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- conversation-capture
+- meddpicc
+- stages
+tools:
+- get_account_context
+- search_evidence
+- record_evidence
+- supersede_evidence
+- propose_decision
+- apply_field_update
+- create_commitment
+- escalate
+writes: evidence, commitments, decisions proposing field updates
+promotion_metric: field accuracy on the replay set; rep correction rate
+input_example: '{"company_id": 123, "deal_id": 456, "transcript": "...", "source_uri": "..."}'
+prompt: prompt.md
+prompt_version: v1

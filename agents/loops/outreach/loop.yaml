@@ -1,0 +1,22 @@
+loop: outreach
+agent: outreach
+job: Carry out the next step of an approved account strategy as a touch.
+trigger: an approved strategy step comes due
+starting_level: 2
+max_level: 4
+skills:
+- evidence
+- outreach-policy
+tools:
+- get_account_context
+- get_policies
+- search_evidence
+- record_evidence
+- propose_decision
+- schedule_touch
+- escalate
+writes: decisions, touches (pending approval at level 2)
+promotion_metric: reply and meeting rate vs holdout; zero policy violations
+input_example: '{"company_id": 123, "strategy_id": 45, "step": 1}'
+prompt: prompt.md
+prompt_version: v1

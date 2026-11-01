@@ -1,0 +1,21 @@
+{
+  "about": "Scripted conversation capture at level 1: evidence and a commitment are recorded, and the field update is refused because the loop has not earned level 2.",
+  "steps": [
+    {"tool": "get_account_context", "input": {"company_id": "${input.company_id}"}, "save_as": "ctx"},
+    {"tool": "record_evidence", "input": {"subject_type": "deal", "subject_id": "${input.deal_id}", "kind": "call_quote",
+      "claim": "\"Security review is done, legal has the order form now.\"", "source_uri": "${input.source_uri}",
+      "observed_at": "2026-10-31T17:20:00Z"}, "save_as": "quote"},
+    {"tool": "record_evidence", "input": {"subject_type": "company", "subject_id": "${input.company_id}", "kind": "call_quote",
+      "claim": "\"Can you send the SOC 2 bridge letter by Friday?\" Our AE: \"Yes, by Friday.\"", "source_uri": "${input.source_uri}",
+      "observed_at": "2026-10-31T17:24:00Z"}, "save_as": "promise"},
+    {"tool": "create_commitment", "input": {"subject_type": "company", "subject_id": "${input.company_id}",
+      "promise": "Send the SOC 2 bridge letter", "due_on": "2026-11-06", "evidence_id": "${promise}"}, "save_as": "commitment"},
+    {"tool": "propose_decision", "input": {"action": "update_field", "subject_type": "deal", "subject_id": "${input.deal_id}",
+      "rationale": "Buyer confirmed security review complete and legal has the order form: exit criteria for in-negociation met.",
+      "evidence_ids": ["${quote}"], "payload": {"table": "deals", "field": "stage", "row_id": "${input.deal_id}", "value": "in-negociation"}},
+     "save_as": "dec"},
+    {"tool": "apply_field_update", "input": {"decision_id": "${dec}", "table": "deals", "row_id": "${input.deal_id}",
+      "field": "stage", "value": "in-negociation"}, "save_as": "applied"}
+  ],
+  "final": "Recorded two quotes and one commitment. The stage change was refused at level 1 and stays a proposal for the deal owner."
+}

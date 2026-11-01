@@ -1,0 +1,21 @@
+loop: operating_design
+agent: operating-design
+job: Propose changes to stages, methodology and the human-agent split.
+trigger: quarterly
+starting_level: 1
+max_level: 2
+skills:
+- evidence
+- operating-design
+- stages
+tools:
+- search_evidence
+- record_evidence
+- propose_decision
+- propose_skill_version
+- escalate
+writes: proposed skill versions and process changes
+promotion_metric: proposals adopted, and conversion change after adoption
+input_example: '{"quarter": "2026-Q4"}'
+prompt: prompt.md
+prompt_version: v1

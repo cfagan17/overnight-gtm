@@ -1,0 +1,22 @@
+loop: deal_inspection
+agent: deal-inspection
+job: Find the open deals most at risk and propose one next step for each.
+trigger: daily on open deals
+starting_level: 1
+max_level: 4
+skills:
+- evidence
+- deal-inspection
+- meddpicc
+- stages
+tools:
+- get_account_context
+- search_evidence
+- propose_decision
+- apply_field_update
+- escalate
+writes: decisions flagging risk and proposing next steps
+promotion_metric: share of slipped or lost deals flagged 30+ days ahead
+input_example: '{"sales_id": 7}'
+prompt: prompt.md
+prompt_version: v1
