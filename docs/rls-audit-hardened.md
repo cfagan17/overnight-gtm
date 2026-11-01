@@ -2,7 +2,7 @@
 
 Target: `/ea_report_hardened?host=/tmp&port=54329`
 
-**0 high, 0 medium, 27 low.**
+**0 high, 0 medium, 30 low.**
 
 | Severity | Check | Object | What it means | Fix |
 | --- | --- | --- | --- | --- |
@@ -10,6 +10,7 @@ Target: `/ea_report_hardened?host=/tmp&port=54329`
 | LOW | definer_callable_by_authenticated | `apply_field_update(bigint,bigint,text,bigint,text,jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `approve_skill(text,integer)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `assign_experiment(bigint,text[])` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
+| LOW | definer_callable_by_authenticated | `claim_outbound_changes(text,integer)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `create_commitment(bigint,text,text,text,date,bigint)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `deal_line_discounts(bigint)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `decide_promotion(bigint,smallint,text)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
@@ -21,12 +22,14 @@ Target: `/ea_report_hardened?host=/tmp&port=54329`
 | LOW | definer_callable_by_authenticated | `partner_margin(bigint)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `promotion_check(bigint,smallint)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `propose_decision(bigint,text,text,text,text,bigint[],jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
+| LOW | definer_callable_by_authenticated | `propose_external_update(bigint,bigint,text,text,text,text,jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `propose_skill_version(bigint,bigint,text,text)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `propose_strategy(bigint,bigint,text,text,jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `record_evidence(bigint,text,text,text,text,text,timestamp with time zone)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `record_experiment_outcome(bigint,text,numeric)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `record_replay_result(bigint,text,text,text,jsonb,integer,numeric,numeric)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `record_run_event(bigint,text,text,jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
+| LOW | definer_callable_by_authenticated | `report_outbound_change(bigint,boolean,text)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `review_decision(bigint,text,text,jsonb)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `schedule_touch(bigint,bigint,bigint,text,text,text,text,timestamp with time zone)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
 | LOW | definer_callable_by_authenticated | `start_experiment(bigint)` | Runs with its owner's rights for any signed-in user. Check that it verifies the caller itself. | Confirm the function checks auth.uid() and the caller's role before acting. |
