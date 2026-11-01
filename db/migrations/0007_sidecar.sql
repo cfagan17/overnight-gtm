@@ -65,8 +65,15 @@ create policy ea_outbound_select on public.outbound_changes for select to authen
 grant select on public.sidecar_user_map, public.sidecar_territory_map, public.external_field_allowlist, public.outbound_changes to authenticated;
 grant all on public.sidecar_user_map, public.sidecar_territory_map, public.external_field_allowlist, public.outbound_changes to service_role;
 grant usage, select on all sequences in schema public to authenticated, service_role;
-create trigger ea_audit after insert or update or delete on public.outbound_changes
-  for each row execute function ea_private.audit();
+do $$
+declare t text;
+begin
+  foreach t in array array['outbound_changes','sidecar_user_map','sidecar_territory_map','external_field_allowlist']
+  loop
+    execute format('create trigger ea_audit after insert or update or delete on public.%I
+                    for each row execute function ea_private.audit()', t);
+  end loop;
+end $$;
 
 -- Map an external CRM object to the subject type used by the primitives.
 create or replace function ea_private.external_subject_type(p_system text, p_object text) returns text
@@ -98,8 +105,9 @@ begin
   if v_min is null then perform ea_private.raise_denied(format('%s %s.%s is not on the external allowlist', p_system, p_object, p_field)); end if;
   if not ea_private.can_see_subject(v_type, p_record_id) then perform ea_private.raise_denied('record outside agent scope'); end if;
   if not exists (select 1 from public.decision_evidence de join public.evidence e on e.id = de.evidence_id
-                 where de.decision_id = d.id and e.strength = 'strong' and e.superseded_by is null) then
-    perform ea_private.raise_denied('CRM changes need a decision that cites strong evidence');
+                 where de.decision_id = d.id and e.strength = 'strong' and e.superseded_by is null
+                   and e.subject_type = v_type and e.subject_id = p_record_id) then
+    perform ea_private.raise_denied('CRM changes need a decision that cites strong evidence about this record');
   end if;
   v_status := case when a.level >= v_min then 'approved' else 'pending_approval' end;
   insert into public.outbound_changes (decision_id, source_system, object_name, record_id, field, value, status)
@@ -122,15 +130,17 @@ end $$;
 
 create or replace function public.report_outbound_change(p_id bigint, p_ok boolean, p_error text default null)
 returns void language plpgsql security definer set search_path = '' as $$
+declare v_decision bigint;
 begin
   if auth.role() <> 'service_role' and current_user <> 'service_role' then
     perform ea_private.raise_denied('only the writeback worker reports outbound changes');
   end if;
   update public.outbound_changes set status = case when p_ok then 'sent' else 'failed' end,
     sent_at = case when p_ok then now() end, error = p_error
-  where id = p_id and status = 'approved';
-  update public.decisions set status = case when p_ok then 'applied' else 'failed' end
-  where id = (select decision_id from public.outbound_changes where id = p_id);
+  where id = p_id and status = 'approved'
+  returning decision_id into v_decision;
+  if v_decision is null then perform ea_private.raise_denied('change is not approved or does not exist'); end if;
+  update public.decisions set status = case when p_ok then 'applied' else 'failed' end where id = v_decision;
 end $$;
 
 do $$

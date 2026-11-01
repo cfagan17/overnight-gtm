@@ -57,6 +57,9 @@ ATTACKS = [
            "select t.id from public.tasks t join public.contacts c on c.id = t.contact_id "
            "where c.company_id = (select id from public.companies where name = 'Maple Ledger') limit 1",
            "delete from public.tasks where id = %(id)s", "write"),
+    Attack("Rep adds a deal to another rep's account (inflating that territory's pipeline)", "West AE", ANA,
+           "select id from public.companies where name = 'Maple Ledger'",
+           "insert into public.deals (name, company_id, stage, amount, index) values ('injected', %(id)s, 'opportunity', 9999999, 0)", "write"),
     Attack("Read-only finance user changes a deal", "Read-only user", FIN,
            "select id from public.deals where name = 'Acme Orchards - Platform'",
            "update public.deals set amount = 1 where id = %(id)s", "write"),

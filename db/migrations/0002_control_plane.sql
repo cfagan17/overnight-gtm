@@ -40,19 +40,22 @@ create table public.principals (
 -- existing Atomic install keeps working before principals are filled in.
 create or replace function ea_private.current_role_name() returns text
 language sql stable security definer set search_path = '' as $$
-  select coalesce(
-    (select p.role from public.principals p where p.user_id = auth.uid() and p.active),
-    (select case when s.administrator then 'owner' else 'rep' end
-       from public.sales s where s.user_id = auth.uid() and not s.disabled),
-    'none')
+  -- A principal row, active or not, always wins: deactivating someone revokes access.
+  select case
+    when exists (select 1 from public.principals p where p.user_id = auth.uid())
+      then coalesce((select p.role from public.principals p where p.user_id = auth.uid() and p.active), 'none')
+    else coalesce((select case when s.administrator then 'owner' else 'rep' end
+                   from public.sales s where s.user_id = auth.uid() and not s.disabled), 'none')
+  end
 $$;
 
 create or replace function ea_private.current_kind() returns text
 language sql stable security definer set search_path = '' as $$
-  select coalesce(
-    (select p.kind from public.principals p where p.user_id = auth.uid() and p.active),
-    (select 'human' from public.sales s where s.user_id = auth.uid() and not s.disabled),
-    'none')
+  select case
+    when exists (select 1 from public.principals p where p.user_id = auth.uid())
+      then coalesce((select p.kind from public.principals p where p.user_id = auth.uid() and p.active), 'none')
+    else coalesce((select 'human' from public.sales s where s.user_id = auth.uid() and not s.disabled), 'none')
+  end
 $$;
 
 create or replace function ea_private.current_sales_id() returns bigint
@@ -205,6 +208,27 @@ $$;
 
 grant execute on all functions in schema ea_private to authenticated, service_role;
 
+-- Only owners move records between territories. For everyone else the territory comes from
+-- the rules (companies) or the company (deals). Calls with no signed-in user (migrations,
+-- the service role) are maintenance and pass through.
+create or replace function ea_private.guard_territory() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if auth.uid() is null or ea_private.current_role_name() = 'owner' then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    new.territory_id := null;          -- the default triggers (named "20_...") fill it
+  elsif new.territory_id is distinct from old.territory_id then
+    raise exception 'ea: only owners change territory assignments' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+create trigger "10_company_guard_territory" before insert or update on public.companies
+  for each row execute function ea_private.guard_territory();
+create trigger "10_deal_guard_territory" before insert or update on public.deals
+  for each row execute function ea_private.guard_territory();
+
 -- Replace every existing policy on the tables this migration governs ----------------
 
 do $$
@@ -234,10 +258,12 @@ create policy ea_contacts_select on public.contacts for select to authenticated
   using (ea_private.can_see(sales_id, (ea_private.company_owner_territory(company_id)).territory)
          or ea_private.can_see_company(company_id));
 create policy ea_contacts_insert on public.contacts for insert to authenticated
-  with check (ea_private.can_edit(sales_id));
+  with check (ea_private.can_edit(sales_id)
+              and (company_id is null or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner)));
 create policy ea_contacts_update on public.contacts for update to authenticated
   using (ea_private.can_edit(sales_id) or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner))
-  with check (ea_private.can_edit(sales_id) or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner));
+  with check ((ea_private.can_edit(sales_id) or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner))
+              and (company_id is null or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner)));
 create policy ea_contacts_delete on public.contacts for delete to authenticated
   using (ea_private.can_delete(sales_id));
 
@@ -245,9 +271,12 @@ create policy ea_contacts_delete on public.contacts for delete to authenticated
 create policy ea_deals_select on public.deals for select to authenticated
   using (ea_private.can_see(sales_id, territory_id));
 create policy ea_deals_insert on public.deals for insert to authenticated
-  with check (ea_private.can_edit(sales_id));
+  with check (ea_private.can_edit(sales_id)
+              and (company_id is null or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner)));
 create policy ea_deals_update on public.deals for update to authenticated
-  using (ea_private.can_edit(sales_id)) with check (ea_private.can_edit(sales_id));
+  using (ea_private.can_edit(sales_id))
+  with check (ea_private.can_edit(sales_id)
+              and (company_id is null or ea_private.can_edit((ea_private.company_owner_territory(company_id)).owner)));
 create policy ea_deals_delete on public.deals for delete to authenticated
   using (ea_private.can_delete(sales_id));
 
@@ -381,6 +410,10 @@ create policy ea_agent_grants_write on public.agent_grants for all to authentica
 create or replace function ea_private.guard_autonomy() returns trigger
 language plpgsql set search_path = '' as $$
 begin
+  -- The loop name ties an agent to its caps, holdouts and review history. It never changes.
+  if new."loop" is distinct from old."loop" then
+    raise exception 'ea: an agent definition''s loop cannot change; create a new agent instead' using errcode = '42501';
+  end if;
   if new.autonomy_level is distinct from old.autonomy_level
      and coalesce(current_setting('ea.promotion_in_progress', true), '') <> 'on' then
     raise exception 'ea: autonomy_level changes only through public.decide_promotion()' using errcode = '42501';
@@ -442,6 +475,9 @@ declare
   v_decision bigint := nullif(current_setting('ea.decision_id', true), '')::bigint;
   v_run bigint := nullif(current_setting('ea.run_id', true), '')::bigint;
   v_row jsonb := case when tg_op = 'DELETE' then to_jsonb(old) else to_jsonb(new) end;
+  -- Masked columns never enter the log, or the log would undo the field-level security.
+  v_masked text[] := case tg_table_name when 'deal_lines' then array['discount_pct']
+                                        when 'partners' then array['margin_pct'] else array[]::text[] end;
 begin
   -- Anyone can set a session variable, so ea.decision_id is only recorded when it names
   -- a decision that is being applied right now (status 'applying', set by the contract
@@ -455,8 +491,8 @@ begin
   end if;
   insert into public.audit_log (table_name, row_id, op, before, after, principal_id, principal_kind, decision_id, run_id)
   values (tg_table_name, v_row->>'id', tg_op,
-          case when tg_op in ('UPDATE','DELETE') then to_jsonb(old) end,
-          case when tg_op in ('INSERT','UPDATE') then to_jsonb(new) end,
+          case when tg_op in ('UPDATE','DELETE') then to_jsonb(old) - v_masked end,
+          case when tg_op in ('INSERT','UPDATE') then to_jsonb(new) - v_masked end,
           auth.uid(), ea_private.current_kind(), v_decision, v_run);
   return null;
 end $$;
@@ -519,3 +555,4 @@ begin
     execute format('revoke execute on function %s from public, anon', f.sig);
   end loop;
 end $$;
+grant execute on all functions in schema public to service_role;

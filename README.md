@@ -7,7 +7,7 @@ Most AI sales tools bolt a feature onto a CRM built for people typing into forms
 The answer here is concrete and runs as code:
 
 1. **A ledger (Layer 1)** for the facts that forecasts, comp and board numbers come from: accounts, contacts, deals, lines, contracts, territories, partners, weekly forecast snapshots.
-2. **A control plane (Layer 2)** enforced inside Postgres. Visibility follows ownership, management chain and territory. Agents have their own identities, scoped grants, and no direct write access to the ledger. Every change is audited.
+2. **A control plane (Layer 2)** enforced inside Postgres. Visibility follows ownership, management chain and territory. Agents have their own identities, scoped grants, and no direct write access to the ledger. Changes to ledger and governance tables are audited.
 3. **New primitives** that store *why*, not just *what*: evidence, strategies, experiments, decisions, policies, commitments, plus runs and skills that record how each agent worked.
 4. **Twelve loops**, from account planning and conversation capture to territory design and comp ops, each starting at a low autonomy level.
 5. **A promotion review.** A loop moves up a level only when its record clears a bar: reviewed decisions, replay evals, holdout experiments, and zero policy violations. A new model release becomes a promotion review, not a rewrite.
@@ -16,17 +16,19 @@ The answer here is concrete and runs as code:
 
 ## What has been measured
 
-Built on [Atomic CRM](https://github.com/marmelab/atomic-crm) (MIT, Supabase), whose real schema is vendored at a pinned commit. The same 14 attacks were run against stock Atomic and against Atomic plus these migrations ([full report](docs/attack-report.md)):
+Built on [Atomic CRM](https://github.com/marmelab/atomic-crm) (MIT, Supabase), whose real schema is vendored at a pinned commit. The same 15 attacks were run against stock Atomic and against Atomic plus these migrations ([full report](docs/attack-report.md)):
 
 | | Stock Atomic | With earned-autonomy |
 | --- | --- | --- |
-| Attacks allowed (a rep reading, editing or deleting another territory's records, a read-only user editing, an agent writing directly) | 13 of 14 | 0 of 14 |
+| Attacks allowed (a rep reading, editing or deleting another territory's records, a read-only user editing, an agent writing directly) | 14 of 15 | 0 of 15 |
 | `tools/rls-audit` findings, high | 33 | 0 |
 | `tools/rls-audit` findings, medium (after review) | 28 | 0 |
 
 Stock Atomic is a good template that is honest about its scope: a small team where everyone may see and change everything. The report shows what changes when that stops being true, and when AI agents connect as users.
 
-The test suite (56 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
+Before publishing, an independent adversarial review tried to break the hardened schema and found real holes, including two ways an agent could change records outside its scope. All confirmed findings are fixed and each has a regression test. The [review write-up](docs/review-2026-11-01.md) lists what was found, what changed, and what is still open.
+
+The test suite (73 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
 
 ## Three ways to use it
 
@@ -70,7 +72,7 @@ Deploying on a real Supabase project: [docs/deploying.md](docs/deploying.md).
 
 | Path | What |
 | --- | --- |
-| `db/migrations/` | Seven migrations: ledger, control plane, primitives, runtime, agent contract, promotion, sidecar |
+| `db/migrations/` | Eight migrations: ledger, control plane, primitives, runtime, agent contract, promotion, sidecar, final grants |
 | `agents/loops/` | Twelve loop definitions with prompts, tools, starting and maximum levels, promotion metrics |
 | `agents/skills/` | Versioned methodology the agents load: evidence rules, MEDDPICC, stages, account plans, territories, comp credit, partners, health, forecasting |
 | `agents/runtime/` | The runner (live model or scripted), tool definitions, transports for direct Postgres and Supabase REST |

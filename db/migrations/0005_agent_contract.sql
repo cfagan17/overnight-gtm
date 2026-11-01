@@ -80,8 +80,16 @@ grant select on public.field_update_allowlist, public.touches, public.escalation
 grant update (status) on public.escalations to authenticated;
 grant all on public.field_update_allowlist, public.touches, public.escalations to service_role;
 grant usage, select on all sequences in schema public to authenticated, service_role;
-create trigger ea_audit after insert or update or delete on public.touches
-  for each row execute function ea_private.audit();
+do $$
+declare t text;
+begin
+  foreach t in array array['touches','escalations','field_update_allowlist','contact_notes','deal_notes','tasks',
+                           'tags','products','sales','configuration']
+  loop
+    execute format('create trigger ea_audit after insert or update or delete on public.%I
+                    for each row execute function ea_private.audit()', t);
+  end loop;
+end $$;
 
 -- Guards -----------------------------------------------------------------------------
 
@@ -318,9 +326,15 @@ begin
   v_run := a.run;
   select * into o from public.evidence where id = p_old_id;
   select * into n from public.evidence where id = p_new_id;
-  if o.id is null or n.id is null or o.subject_type <> n.subject_type or o.subject_id <> n.subject_id
-     or not ea_private.can_see_subject(o.subject_type, o.subject_id) then
-    perform ea_private.raise_denied('both evidence rows must exist, be visible and share a subject');
+  if o.id is null or n.id is null or o.id = n.id or o.subject_type <> n.subject_type or o.subject_id <> n.subject_id
+     or n.created_at < o.created_at or not ea_private.can_see_subject(o.subject_type, o.subject_id) then
+    perform ea_private.raise_denied('supersede with a newer, different row about the same visible subject');
+  end if;
+  -- Agents may only supersede what agents recorded. Evidence from people or from an
+  -- integration (service role) is superseded by people.
+  if ea_private.current_kind() = 'agent'
+     and not exists (select 1 from public.principals p where p.user_id = o.recorded_by and p.kind = 'agent') then
+    perform ea_private.raise_denied('agents can only supersede evidence that an agent recorded');
   end if;
   update public.evidence set superseded_by = p_new_id where id = p_old_id;
 end $$;
@@ -388,14 +402,29 @@ end $$;
 
 -- Applies a field update for an approved decision. Called by apply_field_update (level 3+)
 -- and by review_decision (level 2 path, after a human approves).
-create or replace function ea_private.execute_field_update(p_decision public.decisions, p_value jsonb)
+create or replace function ea_private.execute_field_update(p_decision_id bigint, p_value jsonb)
 returns void language plpgsql security definer set search_path = '' as $$
 declare
-  t text := p_decision.payload->>'table';
-  f text := p_decision.payload->>'field';
-  v_id bigint := (p_decision.payload->>'row_id')::bigint;
-  n int;
+  p_decision public.decisions;
+  t text; f text; v_id bigint; n int;
 begin
+  -- Re-read the decision: callers pass an id, never a row they could have built themselves.
+  select * into p_decision from public.decisions where id = p_decision_id for update;
+  if p_decision.id is null or p_decision.action <> 'update_field' or p_decision.status not in ('proposed','queued') then
+    perform ea_private.raise_denied('decision is not an open field update');
+  end if;
+  -- Only the agent that made it (from apply_field_update) or the human who approved it may apply it.
+  if not ((p_decision.made_by = auth.uid() and p_decision.review_outcome is null)
+          or (p_decision.reviewed_by = auth.uid() and p_decision.review_outcome in ('accepted','edited'))) then
+    perform ea_private.raise_denied('caller may not apply this decision');
+  end if;
+  t := p_decision.payload->>'table';
+  f := p_decision.payload->>'field';
+  v_id := (p_decision.payload->>'row_id')::bigint;
+  if p_decision.subject_id is distinct from v_id::text
+     or p_decision.subject_type is distinct from (case t when 'deals' then 'deal' when 'contacts' then 'contact' when 'companies' then 'company' end) then
+    perform ea_private.raise_denied('decision payload and subject disagree');
+  end if;
   if not exists (select 1 from public.field_update_allowlist w where w.table_name = t and w.field = f) then
     perform ea_private.raise_denied(format('%s.%s is not on the field update allowlist', t, f));
   end if;
@@ -423,18 +452,24 @@ begin
   if v_subject_type is null then perform ea_private.raise_denied('table not supported'); end if;
   d := ea_private.require_decision(v_run, p_decision_id, 'update_field', v_subject_type, p_row_id::text);
   if d.payload->>'table' is distinct from p_table or d.payload->>'field' is distinct from p_field
-     or (d.payload->'value') is distinct from p_value then
+     or (d.payload->'value') is distinct from p_value or (d.payload->>'row_id') is distinct from p_row_id::text then
     perform ea_private.raise_denied('decision payload does not match this update');
   end if;
   select w.min_level into v_min from public.field_update_allowlist w where w.table_name = p_table and w.field = p_field;
   if v_min is null then perform ea_private.raise_denied(format('%s.%s is not on the field update allowlist', p_table, p_field)); end if;
   if not ea_private.can_see_subject(v_subject_type, p_row_id::text) then perform ea_private.raise_denied('record outside agent scope'); end if;
+  -- The strong evidence has to be about this record (or, for a deal or contact, its company).
   if not exists (select 1 from public.decision_evidence de join public.evidence e on e.id = de.evidence_id
-                 where de.decision_id = d.id and e.strength = 'strong' and e.superseded_by is null) then
-    perform ea_private.raise_denied('ledger changes need a decision that cites strong evidence');
+                 where de.decision_id = d.id and e.strength = 'strong' and e.superseded_by is null
+                   and ((e.subject_type = v_subject_type and e.subject_id = p_row_id::text)
+                     or (e.subject_type = 'company' and e.subject_id = (case p_table
+                          when 'deals' then (select company_id from public.deals where id = p_row_id)
+                          when 'contacts' then (select company_id from public.contacts where id = p_row_id)
+                          when 'companies' then p_row_id end)::text))) then
+    perform ea_private.raise_denied('ledger changes need a decision that cites strong evidence about this record');
   end if;
   if a.level >= v_min then
-    perform ea_private.execute_field_update(d, p_value);
+    perform ea_private.execute_field_update(d.id, p_value);
     return 'applied';
   end if;
   update public.decisions set status = 'queued' where id = d.id;
@@ -485,7 +520,11 @@ begin
   if not ea_private.can_see_contact(p_contact_id) then perform ea_private.raise_denied('contact outside agent scope'); end if;
   d := ea_private.require_decision(v_run, p_decision_id, 'schedule_touch', 'contact', p_contact_id::text);
   v_reason := ea_private.touch_block_reason(v_run."loop", p_contact_id, p_channel, p_sender_type);
-  v_status := case when v_reason is not null then 'blocked' when a.level >= 3 then 'scheduled' else 'pending_approval' end;
+  -- An agent can only send as itself. A touch from a rep, executive, SE or partner is a request
+  -- for that person to act, so it always waits for them, at any level.
+  v_status := case when v_reason is not null then 'blocked'
+                   when a.level >= 3 and p_sender_type = 'agent' then 'scheduled'
+                   else 'pending_approval' end;
   insert into public.touches (decision_id, run_id, contact_id, channel, sender_type, purpose, content_ref, scheduled_for, status, blocked_reason)
   values (d.id, p_run_id, p_contact_id, p_channel, p_sender_type, p_purpose, p_content_ref, p_scheduled_for, v_status, v_reason)
   returning id into v_id;
@@ -522,6 +561,7 @@ declare a record; v_run public.runs; v_id bigint;
 begin
   select * into a from ea_private.agent_or_human(p_run_id, 'escalate', 0::smallint, 'escalate');
   v_run := a.run;
+  if not ea_private.can_see_subject(p_subject_type, p_subject_id) then perform ea_private.raise_denied('subject not visible'); end if;
   if not exists (select 1 from public.principals p where p.user_id = p_to_user and p.kind = 'human' and p.active) then
     perform ea_private.raise_denied('escalations go to an active human principal');
   end if;
@@ -540,8 +580,8 @@ begin
   v_run := a.run;
   if ea_private.current_kind() = 'agent' then
     perform ea_private.require_decision(v_run, p_decision_id, 'propose_skill_version', 'skill', p_name);
-  elsif ea_private.current_role_name() <> 'owner' then
-    perform ea_private.raise_denied('only owners propose skill versions directly');
+  elsif ea_private.current_role_name() <> 'owner' or p_decision_id is not null then
+    perform ea_private.raise_denied('only owners propose skill versions directly, without a decision');
   end if;
   perform pg_advisory_xact_lock(hashtext('skill:' || p_name));
   select coalesce(max(version), 0) + 1 into v_version from public.skills where name = p_name;
@@ -565,6 +605,34 @@ end $$;
 
 -- Human review -------------------------------------------------------------------------
 
+-- Reviewing means approving work on a record, so it needs edit rights on that record, not
+-- just sight of it. Org-wide subjects (territories, skills, loops) need the owner role;
+-- partner plans need an owner or that partner's manager.
+create or replace function ea_private.can_review_subject(p_type text, p_id text) returns boolean
+language plpgsql stable security definer set search_path = '' as $$
+declare v_num bigint; v_owner bigint;
+begin
+  if not ea_private.is_human() then return false; end if;
+  if ea_private.current_role_name() = 'owner' then return ea_private.can_see_subject(p_type, p_id); end if;
+  if p_type in ('territory','skill','loop') then return false; end if;
+  if p_id ~ '^[0-9]+$' then v_num := p_id::bigint; end if;
+  if p_type = 'partner' then
+    return v_num is not null and exists (select 1 from public.partners pa
+      where pa.id = v_num and pa.partner_manager_sales_id = ea_private.current_sales_id());
+  end if;
+  if v_num is not null and p_type = 'company' and exists (select 1 from public.companies where id = v_num) then
+    select sales_id into v_owner from public.companies where id = v_num;
+    return ea_private.can_edit(v_owner);
+  elsif v_num is not null and p_type = 'deal' and exists (select 1 from public.deals where id = v_num) then
+    select sales_id into v_owner from public.deals where id = v_num;
+    return ea_private.can_edit(v_owner);
+  elsif v_num is not null and p_type = 'contact' and exists (select 1 from public.contacts where id = v_num) then
+    return ea_private.can_edit_contact(v_num);
+  end if;
+  select e.owner_sales_id into v_owner from public.external_subjects e where e.subject_type = p_type and e.subject_id = p_id;
+  return v_owner is not null and ea_private.can_edit(v_owner);
+end $$;
+
 create or replace function public.review_decision(p_decision_id bigint, p_outcome text,
   p_note text default null, p_edited_payload jsonb default null)
 returns text language plpgsql security definer set search_path = '' as $$
@@ -573,8 +641,8 @@ begin
   if not ea_private.is_human() then perform ea_private.raise_denied('only humans review decisions'); end if;
   if p_outcome not in ('accepted','edited','rejected') then perform ea_private.raise_denied('outcome must be accepted, edited or rejected'); end if;
   select * into d from public.decisions where id = p_decision_id for update;
-  if d.id is null or not ea_private.can_see_subject(d.subject_type, d.subject_id) then
-    perform ea_private.raise_denied('decision not found or not visible');
+  if d.id is null or not ea_private.can_review_subject(d.subject_type, d.subject_id) then
+    perform ea_private.raise_denied('decision not found, or caller cannot review this record');
   end if;
   if d.review_outcome is not null then perform ea_private.raise_denied('decision already reviewed'); end if;
   if ea_private.current_role_name() = 'readonly' then perform ea_private.raise_denied('read-only users do not review'); end if;
@@ -608,7 +676,7 @@ begin
     end if;
     if not ea_private.can_edit(v_owner) then perform ea_private.raise_denied('reviewer cannot edit this record'); end if;
     v_payload := case when p_outcome = 'edited' then p_edited_payload->'value' else d.payload->'value' end;
-    perform ea_private.execute_field_update(d, v_payload);
+    perform ea_private.execute_field_update(d.id, v_payload);
     return 'applied';
   elsif d.action = 'update_external_field' and d.status = 'queued' then
     -- sidecar mode (0007): the reviewer must own or manage the record in the mirror
@@ -645,8 +713,7 @@ returns void language plpgsql security definer set search_path = '' as $$
 declare s public.strategies;
 begin
   select * into s from public.strategies where id = p_strategy_id for update;
-  if s.id is null or not ea_private.is_human() or not ea_private.can_see_subject(s.subject_type, s.subject_id)
-     or ea_private.current_role_name() not in ('owner','manager','rep') then
+  if s.id is null or not ea_private.can_review_subject(s.subject_type, s.subject_id) then
     perform ea_private.raise_denied('strategy not found or caller cannot activate it');
   end if;
   if s.status = 'holdout' then perform ea_private.raise_denied('holdout strategies are recorded but never activated'); end if;

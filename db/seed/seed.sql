@@ -183,3 +183,14 @@ select ct.id, 'call', 'Follow up on pricing', ct.sales_id, now() + interval '3 d
 insert into public.agent_grants (agent_definition_id, tool, scope, approved_by, approved_at)
 select id, 'propose_external_update', '{"all": true}', '00000000-0000-0000-0000-000000000001', now()
 from public.agent_definitions where name in ('conversation-capture', 'deal-inspection');
+
+-- Registered evidence sources. Agent-recorded strong evidence must point at one of these.
+-- The demo lets agents write strong evidence to these sources so loops can run without a
+-- capture integration. In production, set agents_may_write = false and have the integration
+-- (service role) write first-hand evidence for agents to cite.
+insert into public.evidence_sources (uri_prefix, kinds, description, registered_by, agents_may_write) values
+  ('gong://',      array['call_quote'], 'Call recordings', '00000000-0000-0000-0000-000000000001', true),
+  ('mail://',      array['email_from_contact','signature_block'], 'Synced mailboxes', '00000000-0000-0000-0000-000000000001', true),
+  ('calendar://',  array['meeting_attended'], 'Synced calendars', '00000000-0000-0000-0000-000000000001', true),
+  ('telemetry://', array['product_usage'], 'Product telemetry warehouse', '00000000-0000-0000-0000-000000000001', true),
+  ('crm://',       array['crm_record'], 'Reports and records in this CRM', '00000000-0000-0000-0000-000000000001', true);

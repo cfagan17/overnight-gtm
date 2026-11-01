@@ -73,6 +73,23 @@ insert into public.evidence_kinds (kind, strength, description) values
   ('social_post',       'weak',   'A public social post'),
   ('inferred',          'weak',   'A conclusion drawn from other evidence, not observed');
 
+-- Where first-hand evidence can come from. An agent that records a strong kind (a call
+-- quote, an email, usage) gets a strong row only if the source is registered and allows
+-- agent writes; otherwise the row is stored as weak. The safer setup is agents_may_write =
+-- false, with the capture integration (service role) writing evidence and agents citing it:
+-- a URI prefix shows which system a claim points at, not that the words are really there.
+create table public.evidence_sources (
+  uri_prefix text primary key check (length(uri_prefix) >= 4),
+  kinds text[] not null,
+  description text not null,
+  -- false (recommended): only the capture integration (service role) or people write strong
+  -- evidence for this source, and agents cite it. true: agent-written rows count as strong,
+  -- which means trusting the agent's transcription.
+  agents_may_write boolean not null default false,
+  registered_by uuid,
+  registered_at timestamptz not null default now()
+);
+
 create table public.evidence (
   id bigint generated always as identity primary key,
   subject_type text not null check (subject_type in ('company','contact','deal','partner','territory')),
@@ -82,6 +99,7 @@ create table public.evidence (
   source_uri text not null check (length(source_uri) > 0),
   observed_at timestamptz not null,
   strength text not null,
+  downgraded boolean not null default false,  -- true when a strong kind was recorded without a registered source
   recorded_by uuid not null,
   run_id bigint,                                -- set when an agent recorded it
   superseded_by bigint references public.evidence(id),
@@ -95,6 +113,13 @@ begin
   if tg_op = 'INSERT' then
     select k.strength into new.strength from public.evidence_kinds k where k.kind = new.kind;
     new.recorded_by := coalesce(auth.uid(), new.recorded_by);
+    new.downgraded := false;
+    if new.strength = 'strong' and ea_private.current_kind() = 'agent'
+       and not exists (select 1 from public.evidence_sources s
+                       where new.source_uri like s.uri_prefix || '%' and new.kind = any (s.kinds) and s.agents_may_write) then
+      new.strength := 'weak';
+      new.downgraded := true;
+    end if;
     return new;
   end if;
   -- UPDATE: evidence is append-only. The only allowed change is marking it superseded once.
@@ -140,6 +165,27 @@ create table public.experiments (
   ends_at date,
   created_by uuid not null default auth.uid()
 );
+
+-- Once an experiment runs, its definition is frozen and it can only move forward to closed.
+create or replace function ea_private.guard_experiment() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  if old.status = 'draft' then return new; end if;
+  if (to_jsonb(new) - 'status' - 'ends_at') is distinct from (to_jsonb(old) - 'status' - 'ends_at')
+     or not (new.status = old.status or (old.status = 'running' and new.status = 'closed')) then
+    raise exception 'ea: a running or closed experiment cannot be changed (only running -> closed)' using errcode = '42501';
+  end if;
+  return new;
+end $$;
+create trigger ea_guard_experiment before update on public.experiments
+  for each row execute function ea_private.guard_experiment();
+create or replace function ea_private.no_delete() returns trigger
+language plpgsql set search_path = '' as $$
+begin
+  raise exception 'ea: % rows are never deleted', tg_table_name using errcode = '42501';
+end $$;
+create trigger ea_no_delete before delete on public.experiments
+  for each row when (old.status <> 'draft') execute function ea_private.no_delete();
 
 create table public.experiment_assignments (
   experiment_id bigint not null references public.experiments(id),
@@ -232,6 +278,11 @@ create table public.commitments (
 
 alter table public.external_subjects enable row level security;
 alter table public.evidence_kinds enable row level security;
+alter table public.evidence_sources enable row level security;
+create policy ea_sources_select on public.evidence_sources for select to authenticated using (true);
+create policy ea_sources_write on public.evidence_sources for all to authenticated
+  using (ea_private.is_human() and ea_private.current_role_name() = 'owner')
+  with check (ea_private.is_human() and ea_private.current_role_name() = 'owner');
 alter table public.evidence enable row level security;
 alter table public.strategies enable row level security;
 alter table public.experiments enable row level security;
@@ -283,7 +334,8 @@ create policy ea_commitments_update on public.commitments for update to authenti
 grant select on public.external_subjects, public.evidence_kinds, public.evidence, public.strategies,
   public.experiments, public.experiment_assignments, public.experiment_outcomes, public.decisions,
   public.decision_evidence, public.policies, public.do_not_contact, public.commitments to authenticated;
-grant insert, update, delete on public.experiments, public.policies to authenticated;
+grant insert, update, delete on public.experiments, public.policies, public.evidence_sources to authenticated;
+grant select on public.evidence_sources to authenticated;
 grant insert, delete on public.do_not_contact to authenticated;
 grant update (status) on public.commitments to authenticated;
 grant all on all tables in schema public to service_role;
@@ -292,8 +344,9 @@ grant usage, select on all sequences in schema public to authenticated, service_
 do $$
 declare t text;
 begin
-  foreach t in array array['evidence','strategies','experiments','experiment_assignments','decisions',
-                           'policies','commitments','do_not_contact','external_subjects']
+  foreach t in array array['evidence','strategies','experiments','experiment_assignments','experiment_outcomes',
+                           'decisions','decision_evidence','policies','commitments','do_not_contact',
+                           'external_subjects','evidence_kinds','evidence_sources']
   loop
     execute format('create trigger ea_audit after insert or update or delete on public.%I
                     for each row execute function ea_private.audit()', t);

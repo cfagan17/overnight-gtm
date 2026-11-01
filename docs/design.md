@@ -41,13 +41,13 @@ A human CRM stores state. These tables store why the state is what it is.
 
 | Primitive | One row is | What makes it trustworthy |
 | --- | --- | --- |
-| Evidence | One sourced observation | Strength comes from its kind (`evidence_kinds`), never the model. Append-only, even for superusers |
+| Evidence | One sourced observation | Strength comes from its kind (`evidence_kinds`), never the model. An agent's strong-kind row counts as strong only for a registered source that allows agent writes (`evidence_sources`). Append-only, even for superusers |
 | Strategy | A versioned plan for an account, partner or territory | New version per change. Held-out accounts get plans that can never be activated |
 | Experiment | A play against a fixed holdout | Assignment is deterministic and frozen when the experiment starts |
 | Decision | A choice by an agent, citing evidence | Must cite visible, current evidence. Human review outcome (accepted, edited, rejected) is recorded |
 | Policy | A rule of engagement | Checked by the database before every touch |
 | Commitment | Something promised to a customer | Points to the evidence of the promise |
-| Run | One agent session | Model, prompt version, skill versions, every tool call. Every decision belongs to a run |
+| Run | One agent session | Model, prompt version, skill versions, every tool call. Every decision belongs to a run. The agent reports its own model and prompt version, so this is a record, not proof |
 | Skill | A versioned instruction file | Changed only by a reviewed new version |
 
 Subjects are `(subject_type, subject_id text)`, so the same tables work with Atomic ids or Salesforce and HubSpot ids.
@@ -88,7 +88,7 @@ Worked example: 400 accounts, 80 held out. After 60 days, 48 of 320 treated acco
 
 `public.promotion_check()`, `public.decide_promotion()`
 
-A loop moves up one level when the record clears the bar in `promotion_rules`: enough reviewed decisions, a high enough accepted-as-is rate, a low enough rejection rate, a replay score at least as good as the current version, and no policy violations in 60 days. Level 4 also needs a sampled audit showing the agent's error rate below the human error rate on the same work. There is no override for moving up. Moving down is always allowed, and one confirmed violation demotes immediately.
+A loop moves up one level when the record clears the bar in `promotion_rules`: enough reviewed decisions, a high enough accepted-as-is rate, a low enough rejection rate, a replay score at least as good as the current version, and no policy violations in 60 days. Level 4 also needs a sampled audit showing the agent's error rate below the human error rate on the same work. There is no override in `decide_promotion` itself. Owners can change the bar in `promotion_rules`, which is their call to make, but every change to the bar is audited and the rule in force is recorded with each promotion. Moving down is always allowed, and one confirmed violation demotes immediately.
 
 When a new model ships, every loop's replay set runs on it (`evals/replay.py`). Loops that score better switch. Loops that now clear the next bar get a trial at the higher level with full review. A model upgrade becomes a promotion review, not a rewrite.
 

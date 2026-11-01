@@ -191,7 +191,8 @@ begin
     ok := ok and v_agent_err is not null and v_human_err is not null and v_agent_err < v_human_err;
   end if;
   return jsonb_build_object('agent', def.name, 'loop', def."loop", 'from_level', def.autonomy_level,
-                            'to_level', p_to_level, 'eligible', ok, 'checks', checks);
+                            'to_level', p_to_level, 'eligible', ok, 'checks', checks,
+                            'rule_in_force', to_jsonb(rule));
 end $$;
 
 -- Owners decide promotions. Moving up requires the check to pass; there is no override.
@@ -286,8 +287,10 @@ begin
   if not exists (select 1 from public.experiment_assignments where experiment_id = p_experiment_id and subject_id = p_subject_id) then
     perform ea_private.raise_denied('subject is not in this experiment');
   end if;
-  insert into public.experiment_outcomes (experiment_id, subject_id, metric_value) values (p_experiment_id, p_subject_id, p_value)
-  on conflict (experiment_id, subject_id) do update set metric_value = excluded.metric_value, observed_at = now();
+  if exists (select 1 from public.experiment_outcomes where experiment_id = p_experiment_id and subject_id = p_subject_id) then
+    perform ea_private.raise_denied('an outcome is recorded once per subject');
+  end if;
+  insert into public.experiment_outcomes (experiment_id, subject_id, metric_value) values (p_experiment_id, p_subject_id, p_value);
 end $$;
 
 -- Difference between arms with a 95% range. For 0/1 outcomes this is the two-proportion
@@ -331,5 +334,22 @@ begin
   end loop;
 end $$;
 
-create trigger ea_audit after insert or update or delete on public.promotion_rules
-  for each row execute function ea_private.audit();
+do $$
+declare t text;
+begin
+  foreach t in array array['promotion_rules','replay_results','policy_violations','autonomy_changes','audit_samples']
+  loop
+    execute format('create trigger ea_audit after insert or update or delete on public.%I
+                    for each row execute function ea_private.audit()', t);
+  end loop;
+end $$;
+
+-- Outcomes are recorded once per subject. A correction is a new experiment, not an overwrite.
+-- Level 4 audit samples are recorded by owners only.
+drop policy ea_audit_samples_insert on public.audit_samples;
+create policy ea_audit_samples_insert on public.audit_samples for insert to authenticated
+  with check (ea_private.is_human() and ea_private.current_role_name() = 'owner');
+
+-- Loops that touch pay or process are capped at level 2 by a constraint, not only by data.
+alter table public.agent_definitions add constraint agent_definitions_pay_and_process_cap
+  check ("loop" not in ('comp_ops','territory_capacity','operating_design') or max_autonomy <= 2);
