@@ -62,6 +62,21 @@ def main() -> int:
               "Stock Atomic is a good template that is honest about its scope: it is built for a small team "
               "where everyone may see and change everything. The point of this report is what changes when "
               "that assumption stops holding, and when AI agents connect as users.", ""]
+    # Run the standalone audit tool on both databases and keep its reports next to this one.
+    sys.path.insert(0, str(ROOT / "tools" / "rls-audit"))
+    import json
+    import rls_audit
+    probe = json.loads((ROOT / "tools/rls-audit/probe.northwind.json").read_text())
+    for label, dsn_ in (("stock-atomic", stock_dsn), ("hardened", hard_dsn)):
+        args = ["--dsn", dsn_, "--probe", str(ROOT / "tools/rls-audit/probe.northwind.json"),
+                "--out", str(ROOT / "docs" / f"rls-audit-{label}.md")]
+        if label == "hardened":
+            args += ["--accept", str(ROOT / "tools/rls-audit/accepted.northwind.json")]
+        import contextlib, io
+        with contextlib.redirect_stdout(io.StringIO()):
+            rls_audit.main(args)
+    lines += ["See also `docs/rls-audit-stock-atomic.md` and `docs/rls-audit-hardened.md`, produced by "
+              "`tools/rls-audit` on the same two databases.", ""]
     out = ROOT / "docs" / "attack-report.md"
     out.write_text("\n".join(lines))
     print("\n".join(lines))

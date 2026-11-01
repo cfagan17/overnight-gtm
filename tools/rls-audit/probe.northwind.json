@@ -1,0 +1,2 @@
+{"actors":[{"label":"West AE","sub":"00000000-0000-0000-0000-000000000005"},{"label":"Agent","sub":"00000000-0000-0000-0000-000000000102"}],
+ "owner_columns":["sales_id"], "owner_value_sql":"select id from public.sales where user_id = %(sub)s"}

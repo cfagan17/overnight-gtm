@@ -1,0 +1,16 @@
+[
+  {"check": "view_bypasses_rls", "object": "public.init_state",
+   "reason": "Atomic's login page reads whether any user exists yet. The view exposes one count, nothing private."},
+  {"check": "read_policy_true_on_owned_table", "object": "public.sales / Enable read access for authenticated users",
+   "reason": "The seller directory is visible to every signed-in user by design."},
+  {"check": "read_policy_true_on_owned_table", "object": "public.territory_members / ea_territory_members_select",
+   "reason": "The territory carve is public inside the company by design."},
+  {"check": "probe_reads_others_rows", "object": "public.territory_members",
+   "reason": "Same as above: everyone can see who works which territory."},
+  {"check": "probe_reads_others_rows", "object": "public.companies",
+   "reason": "The probed agent is scoped to West Enterprise and reads the AE's accounts there. Intended. Out-of-scope reads are covered by the attack suite."},
+  {"check": "probe_reads_others_rows", "object": "public.contacts", "reason": "As above, contacts at in-scope accounts."},
+  {"check": "probe_reads_others_rows", "object": "public.deals", "reason": "As above, deals at in-scope accounts."},
+  {"check": "probe_reads_others_rows", "object": "public.contact_notes", "reason": "As above, notes on in-scope contacts."},
+  {"check": "probe_reads_others_rows", "object": "public.tasks", "reason": "As above, tasks on in-scope contacts."}
+]

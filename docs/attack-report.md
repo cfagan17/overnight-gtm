@@ -24,3 +24,5 @@ Each row is one attempt by one signed-in user (or a signed-out visitor) against 
 Stock Atomic allowed 13 of 14 attempts. The hardened schema allowed 0.
 
 Stock Atomic is a good template that is honest about its scope: it is built for a small team where everyone may see and change everything. The point of this report is what changes when that assumption stops holding, and when AI agents connect as users.
+
+See also `docs/rls-audit-stock-atomic.md` and `docs/rls-audit-hardened.md`, produced by `tools/rls-audit` on the same two databases.

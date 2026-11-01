@@ -492,3 +492,30 @@ grant execute on function public.take_forecast_snapshot(date), public.deal_line_
   public.partner_margin(bigint) to authenticated, service_role;
 revoke execute on function public.take_forecast_snapshot(date), public.deal_line_discounts(bigint),
   public.partner_margin(bigint) from anon, public;
+
+-- Hygiene found by tools/rls-audit ------------------------------------------------------
+-- favicons_excluded_domains had an unconditional ALL policy. Everyone reads it, owners change it.
+do $$
+declare r record;
+begin
+  for r in select policyname from pg_policies where schemaname = 'public' and tablename = 'favicons_excluded_domains' loop
+    execute format('drop policy %I on public.favicons_excluded_domains', r.policyname);
+  end loop;
+end $$;
+create policy ea_favicons_select on public.favicons_excluded_domains for select to authenticated using (true);
+create policy ea_favicons_write on public.favicons_excluded_domains for all to authenticated
+  using (ea_private.is_human() and ea_private.current_role_name() = 'owner')
+  with check (ea_private.is_human() and ea_private.current_role_name() = 'owner');
+
+-- Signed-out callers need no functions in the public schema. Functions signed-in users can
+-- run today get an explicit grant first, so removing the PUBLIC default changes nothing for them.
+do $$
+declare f record;
+begin
+  for f in select p.oid::regprocedure as sig, has_function_privilege('authenticated', p.oid, 'execute') as auth_ok
+           from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public'
+  loop
+    if f.auth_ok then execute format('grant execute on function %s to authenticated', f.sig); end if;
+    execute format('revoke execute on function %s from public, anon', f.sig);
+  end loop;
+end $$;
