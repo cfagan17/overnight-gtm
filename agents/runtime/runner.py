@@ -197,6 +197,9 @@ def load_loop(name: str) -> dict:
     d = AGENTS / "loops" / name
     spec = yaml.safe_load((d / "loop.yaml").read_text())
     spec["prompt_text"] = (AGENTS / "loops" / "_shared.md").read_text() + "\n\n" + (d / spec["prompt"]).read_text()
+    if spec.get("technical_notes"):
+        # The prompt stays plain English. Tool and action names live in loop.yaml.
+        spec["prompt_text"] += "\n\n# Technical notes\n\n" + spec["technical_notes"] + "\n"
     spec["skill_texts"] = {s: (AGENTS / "skills" / f"{s}.md").read_text() for s in spec["skills"]}
     return spec
 

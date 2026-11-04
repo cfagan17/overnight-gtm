@@ -19,4 +19,5 @@ writes: decisions, touches (pending approval at level 2)
 promotion_metric: reply and meeting rate vs holdout; zero policy violations
 input_example: '{"company_id": 123, "strategy_id": 45, "step": 1}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "A decision with action \"schedule_touch\" (subject: the contact) citing the evidence, then schedule_touch. Escalations use escalate."

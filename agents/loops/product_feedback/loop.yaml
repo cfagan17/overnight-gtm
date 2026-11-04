@@ -16,4 +16,5 @@ writes: themed feedback with counts and sources
 promotion_metric: share of themes the product team marks useful
 input_example: '{"since": "2026-10-26"}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "Search evidence of kind call_quote. One decision per theme with action \"product_theme\", subject_type \"loop\", subject_id \"product_feedback\"."

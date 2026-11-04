@@ -16,4 +16,5 @@ writes: a proposed carve, balance report and capacity model, as one decision
 promotion_metric: spread of territory potential; attainment spread after the cycle
 input_example: '{"plan_year": 2027}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "One decision with action \"propose_carve\", subject_type \"loop\", subject_id \"territory_capacity\". This loop is capped at level 2 by a database constraint."

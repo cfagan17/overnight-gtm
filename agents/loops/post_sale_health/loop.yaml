@@ -18,4 +18,5 @@ writes: evidence (health score), decisions flagging churn or expansion
 promotion_metric: churn flagged 90+ days ahead as a share of all churn
 input_example: '{"company_id": 123}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "Score: evidence of kind \"inferred\". Flags: a decision with action \"flag_churn_risk\" or \"flag_expansion\" (subject: the company)."

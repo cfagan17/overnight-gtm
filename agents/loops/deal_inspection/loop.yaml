@@ -20,5 +20,6 @@ writes: decisions flagging risk and proposing next steps
 promotion_metric: share of slipped or lost deals flagged 30+ days ahead
 input_example: '{"sales_id": 7}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
 sidecar_note: In sidecar mode use propose_external_update instead of apply_field_update; the ledger is in Salesforce or HubSpot.
+technical_notes: "One decision per flagged deal with action \"flag_risk\" (subject: the deal), next step in the payload. Stage updates work as in conversation capture."

@@ -16,4 +16,5 @@ writes: proposed credit splits and payouts, as decisions
 promotion_metric: disputes per period; zero unreviewed payouts
 input_example: '{"period": "2026-10"}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "One decision per deal with action \"propose_credit\" (subject: the deal), plus one summary decision. This loop is capped at level 2."

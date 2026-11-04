@@ -28,7 +28,7 @@ Stock Atomic is a good template that is honest about its scope: a small team whe
 
 Before publishing, an independent adversarial review tried to break the hardened schema and found real holes, including two ways an agent could change records outside its scope. All confirmed findings are fixed and each has a regression test. The [review write-up](docs/review-2026-11-01.md) lists what was found, what changed, and what is still open.
 
-The test suite (79 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
+The test suite (81 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
 
 ## Three ways to use it
 
@@ -73,7 +73,7 @@ Deploying on a real Supabase project: [docs/deploying.md](docs/deploying.md).
 Everything needed to stand up the whole model is here. Swap in any Postgres for Supabase and any capable model for Claude.
 
 1. **The data model.** Eight migrations in `db/migrations/` create the ledger, control plane and every primitive as Postgres tables, functions and policies. Apply them to an Atomic CRM fork on Supabase, or beside Salesforce or HubSpot.
-2. **The loops.** Twelve loop definitions in `agents/loops/`, each a plain-English `prompt.md` plus a `loop.yaml` with its tools, starting and maximum autonomy level, and promotion metric. Fifteen methodology skills in `agents/skills/` (evidence rules, account plans, MEDDPICC, territories, comp credit, forecasting and more). Edit them like any document.
+2. **The loops.** Twelve loop definitions in `agents/loops/`, each a plain-English `prompt.md` that names no tools or tables, plus a `loop.yaml` with its tools, starting and maximum autonomy level, promotion metric, and the technical notes an engineer maintains. A Rev Ops lead can edit the prompts like any document. Fifteen methodology skills in `agents/skills/` (evidence rules, account plans, MEDDPICC, territories, comp credit, forecasting and more), also plain text.
 3. **The runner.** `agents/runtime/runner.py` runs a loop with a live model against the database, writing every tool call to `run_events`.
 4. **Your own data.** `examples/queries/` has starter SQL for asking the primitives directly: which evidence shows up in accepted plans, where reps override the agents, whether a play beat its holdout, how each model performed.
 5. **Better models.** When a new model ships, rerun `evals/replay.py` on it. The prompts, primitives and history stay the same, and loops that score better move up through the promotion review.

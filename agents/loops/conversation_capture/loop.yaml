@@ -23,5 +23,6 @@ writes: evidence, commitments, decisions proposing field updates
 promotion_metric: field accuracy on the replay set; rep correction rate
 input_example: '{"company_id": 123, "deal_id": 456, "transcript": "...", "source_uri": "..."}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
 sidecar_note: In sidecar mode use propose_external_update instead of apply_field_update; the ledger is in Salesforce or HubSpot.
+technical_notes: "Quotes use evidence kind call_quote (or email_from_contact) with a timestamped source_uri. Promises use create_commitment. Field updates: a decision with action \"update_field\" and payload {\"table\", \"field\", \"row_id\", \"value\"}, then apply_field_update. Replaced evidence: supersede_evidence."

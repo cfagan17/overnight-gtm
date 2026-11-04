@@ -20,4 +20,5 @@ writes: evidence, one decision, one proposed strategy version
 promotion_metric: accepted-as-is rate; meetings booked vs holdout
 input_example: '{"company_id": 123}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "File one decision with action \"propose_strategy\" (subject: the company) citing every evidence id the plan uses, then call propose_strategy with that decision id and the plan."

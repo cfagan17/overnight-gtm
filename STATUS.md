@@ -21,7 +21,7 @@ Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with th
 | Promotion | Agents cannot raise their own level; `decide_promotion` has no override; changes to the bar are audited and recorded with each promotion; a loop that clears the bar is promoted; one confirmed violation demotes; comp, territory and operating design loops are capped at level 2 by a constraint, and a loop name cannot change | `tests/test_agent_contract.py`, `tests/test_review_regressions.py` |
 | Experiment math | The design doc's worked example (48 of 320 vs 8 of 80) gives the stated range and "inconclusive" | `tests/test_agent_contract.py` |
 | Skills | Agents propose new versions through a decision; only owners approve | `tests/test_agent_contract.py` |
-| Runner | All 12 loop definitions load with known tools; scripted runs complete end to end over the real database functions, recording every event | `tests/test_runtime.py` |
+| Runner | All 12 loop definitions load with known tools, and their prompts are plain English with no tool names; scripted runs complete end to end over the real database functions, recording every event | `tests/test_runtime.py`, `tests/test_loop_prompts.py` |
 | Replay evals | Scorers reward the right behavior and penalize stating weak evidence as fact, wrong sender and uncited evidence | `tests/test_replay.py` |
 | Sidecars (logic only) | Ingest fills the visibility mirror; a level 2 Salesforce change waits for the owner, is refused for a non-owner, and is written back with its decision id; HubSpot request shapes; only the worker can claim changes | `tests/test_sidecars.py` (fake HTTP sessions) |
 | Ask-your-data queries | Each starter query in `examples/queries/` runs as an owner on the seeded database | `tests/test_queries.py` |

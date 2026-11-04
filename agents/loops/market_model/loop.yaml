@@ -17,4 +17,5 @@ writes: evidence (inferred scores), decisions proposing ICP changes
 promotion_metric: win rate of the top-scored decile vs the rest, on holdout accounts
 input_example: '{"company_ids": [..]}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "Scores are evidence of kind \"inferred\" on the company, with source_uri naming this run and the profile version. Profile changes: one decision with action \"propose_icp_change\", subject_type \"loop\", subject_id \"market_model\"."

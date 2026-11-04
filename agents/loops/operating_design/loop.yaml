@@ -18,4 +18,5 @@ writes: proposed skill versions and process changes
 promotion_metric: proposals adopted, and conversion change after adoption
 input_example: '{"quarter": "2026-Q4"}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "Skill changes: a decision with action \"propose_skill_version\" (subject_type \"skill\", subject_id the skill name), then propose_skill_version with the full text. Other changes: one decision each. This loop is capped at level 2."

@@ -17,4 +17,5 @@ writes: evidence, proposed partner strategies, new-partner candidates
 promotion_metric: accepted proposals; partner-sourced pipeline vs holdout
 input_example: '{"partner_id": 3} or {"scan": "ecosystem"}'
 prompt: prompt.md
-prompt_version: v1
+prompt_version: v2
+technical_notes: "Existing partner: a decision with action \"propose_strategy\" (subject: the partner) and a strategy. Ecosystem scan: one decision per candidate with action \"propose_partner\", subject_type \"partner\". Input is partner_id, or scan = \"ecosystem\"."
