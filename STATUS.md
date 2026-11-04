@@ -24,6 +24,7 @@ Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with th
 | Runner | All 12 loop definitions load with known tools; scripted runs complete end to end over the real database functions, recording every event | `tests/test_runtime.py` |
 | Replay evals | Scorers reward the right behavior and penalize stating weak evidence as fact, wrong sender and uncited evidence | `tests/test_replay.py` |
 | Sidecars (logic only) | Ingest fills the visibility mirror; a level 2 Salesforce change waits for the owner, is refused for a non-owner, and is written back with its decision id; HubSpot request shapes; only the worker can claim changes | `tests/test_sidecars.py` (fake HTTP sessions) |
+| Ask-your-data queries | Each starter query in `examples/queries/` runs as an owner on the seeded database | `tests/test_queries.py` |
 | Fit assessment | Recommendations for small teams, Salesforce companies and greenfield builds; reading Salesforce describe output and a Postgres schema | `tests/test_fit_assessment.py` |
 
 ## Design only, not yet tested
