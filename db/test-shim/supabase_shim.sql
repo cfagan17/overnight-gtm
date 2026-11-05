@@ -1,7 +1,7 @@
 -- Supabase test shim
 --
 -- Recreates the small part of a Supabase project that the Atomic CRM schema and
--- the earned-autonomy migrations depend on, so the whole stack can be tested on a
+-- the Overnight migrations depend on, so the whole stack can be tested on a
 -- plain Postgres 16. On a real Supabase project, do NOT run this file: every object
 -- here already exists there.
 --

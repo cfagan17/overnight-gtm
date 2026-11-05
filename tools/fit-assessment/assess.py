@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fit assessment: should this company use earned-autonomy, and in which mode?
+"""Fit assessment: should this company use Overnight, and in which mode?
 
 Read-only. Combines a short questionnaire with what it can read from your CRM's metadata.
 
@@ -149,7 +149,7 @@ def main():
     if crm:
         out += ["", "## What your CRM already has", "", "| Need | Present |", "| --- | --- |"]
         out += [f"| {label} | {'yes' if crm.get(key) else 'no'} |" for label, key in LEDGER_NEEDS]
-        out += [f"| earned-autonomy fields installed | {'yes' if crm.get('ea_fields_installed') else 'no'} |"]
+        out += [f"| Overnight fields installed | {'yes' if crm.get('ea_fields_installed') else 'no'} |"]
         gaps = [label for label, key in LEDGER_NEEDS if not crm.get(key)]
         if gaps:
             out += ["", "Gaps the ledger tables or sidecar mirror would fill: " + ", ".join(gaps) + "."]

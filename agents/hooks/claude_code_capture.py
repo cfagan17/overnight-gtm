@@ -35,7 +35,7 @@ def main() -> int:
     try:
         urllib.request.urlopen(req, timeout=10).read()
     except Exception as exc:  # never block the agent because capture failed; say so on stderr
-        print(f"earned-autonomy capture hook: {exc}", file=sys.stderr)
+        print(f"overnight capture hook: {exc}", file=sys.stderr)
     return 0
 
 

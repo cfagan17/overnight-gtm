@@ -1,6 +1,8 @@
-# earned-autonomy
+# Overnight
 
-**An operating layer for GTM teams where AI agents do more of the work, and earn the right to do it.**
+**The open-source AI operating layer for go to market.** Frontier models work every loop of your GTM system every night, writing down why they decided what they did, and earning the right to do more.
+
+Most companies use AI as a feature: draft the email, summarize the call, update the CRM. Overnight is for putting AI at the center of how go to market makes decisions, safely. Every Rev Ops function becomes a loop that reads all of the data on a schedule and proposes what to do next. People review the work, and each loop climbs a ladder of **earned autonomy** only as fast as its record allows.
 
 Most AI sales tools bolt a feature onto a CRM built for people typing into forms. This repo starts from a different question. If a capable model sits at the center of go-to-market, reading every account, conversation and partner signal and doing as much of the work as it reliably can, what does the system underneath need to look like?
 
@@ -18,7 +20,7 @@ The answer here is concrete and runs as code:
 
 Built on [Atomic CRM](https://github.com/marmelab/atomic-crm) (MIT, Supabase), whose real schema is vendored at a pinned commit. The same 15 attacks were run against stock Atomic and against Atomic plus these migrations ([full report](docs/attack-report.md)):
 
-| | Stock Atomic | With earned-autonomy |
+| | Stock Atomic | With Overnight |
 | --- | --- | --- |
 | Attacks allowed (a rep reading, editing or deleting another territory's records, a read-only user editing, an agent writing directly) | 14 of 15 | 0 of 15 |
 | `tools/rls-audit` findings, high | 33 | 0 |

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>EA Agent Writer</label>
-    <description>For the earned-autonomy integration user only. Read the objects agents reason about; edit only the allowlisted fields. No delete, no owner changes, no amounts.</description>
+    <description>For the Overnight integration user only. Read the objects agents reason about; edit only the allowlisted fields. No delete, no owner changes, no amounts.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <objectPermissions>
         <object>Opportunity</object>

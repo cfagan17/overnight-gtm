@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Install earned-autonomy on a real Supabase project: Atomic CRM's schema, then db/migrations,
+"""Install Overnight on a real Supabase project: Atomic CRM's schema, then db/migrations,
 optionally the Northwind demo data.
 
   python scripts/install_hosted.py --dsn "$SUPABASE_DB_URL" [--seed] [--reset --yes-wipe-public-schema]
 
 --dsn     The Session pooler connection string from the Supabase dashboard (Connect).
 --seed    Load db/seed/seed.sql (fictional company "Northwind Data", with demo users that cannot sign in).
---reset   DESTRUCTIVE. Drops the public schema, the earned-autonomy schemas, every auth user and the
+--reset   DESTRUCTIVE. Drops the public schema, the Overnight schemas, every auth user and the
           migration history, then installs fresh. Only for a project you are happy to wipe.
 
 Unlike scripts/build_db.py this never creates or drops databases and never loads the test shim:

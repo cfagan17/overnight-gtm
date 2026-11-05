@@ -1,4 +1,4 @@
--- Minimal seed for a STOCK Atomic CRM database (no earned-autonomy migrations).
+-- Minimal seed for a STOCK Atomic CRM database (no Overnight migrations).
 -- Used only by the attack report to measure the "before" picture. Same people, same
 -- account names as seed.sql, so the same attacks can run against both.
 

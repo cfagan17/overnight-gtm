@@ -2,7 +2,7 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>EA_Decision_Id__c</fullName>
     <label>EA Decision Id</label>
-    <description>The earned-autonomy decision that caused the last agent change to this record. Set only by the writeback worker.</description>
+    <description>The Overnight decision that caused the last agent change to this record. Set only by the writeback worker.</description>
     <type>Text</type>
     <length>32</length>
     <trackHistory>true</trackHistory>

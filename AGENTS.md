@@ -1,5 +1,7 @@
 # Working in this repo (for coding agents)
 
+The project is called Overnight. The `ea_` and `EA_` prefixes in schemas, settings and Salesforce fields stand for earned autonomy, the trust ladder each loop climbs. Keep them as they are.
+
 ## Layout and rules
 
 - `vendor/atomic-crm/` is Atomic CRM's schema at a pinned commit. Do not edit it. To update, copy a newer `supabase/schemas/` from upstream, update `PINNED_COMMIT`, and run the tests.
@@ -18,6 +20,8 @@ make demo     # builds ea_dev with the Northwind seed
 ```
 
 Tests need `EA_TEST_DSN` pointing at a Postgres 16 server where the user can create databases. Never point it at a real project: the build drops and recreates databases.
+
+To check an installed project instead (for example Supabase after `scripts/install_hosted.py --seed`), set `EA_HOSTED_DSN`. Tests then run in rolled-back transactions against that project, and the ones that need scratch databases are skipped.
 
 ## Style
 
