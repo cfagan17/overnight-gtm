@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import pathlib
 import random
 
 import psycopg
@@ -77,8 +78,8 @@ NOTES = {
 
 
 def ago(days: float, hour: int = 2) -> dt.datetime:
-    t = NOW - dt.timedelta(days=days)
-    return t.replace(hour=hour, minute=R.randint(0, 59), second=R.randint(0, 59))
+    t = (NOW - dt.timedelta(days=days)).replace(hour=hour, minute=R.randint(0, 59), second=R.randint(0, 59))
+    return t if t < NOW - dt.timedelta(minutes=30) else NOW - dt.timedelta(hours=R.uniform(1, 5))
 
 
 def pick_outcome(mix):
@@ -101,7 +102,7 @@ def main() -> None:
 
 def set_passwords(c: psycopg.Connection) -> None:
     c.execute("update auth.users set encrypted_password = extensions.crypt(%s, extensions.gen_salt('bf')), "
-              "email_confirmed_at = coalesce(email_confirmed_at, now()), aud = 'authenticated', role = 'authenticated', "
+              "email_confirmed_at = coalesce(email_confirmed_at, now()), created_at = coalesce(created_at, now()), updated_at = coalesce(updated_at, now()), aud = 'authenticated', role = 'authenticated', "
               "instance_id = coalesce(instance_id, '00000000-0000-0000-0000-000000000000'), "
               "confirmation_token = coalesce(confirmation_token, ''), recovery_token = coalesce(recovery_token, ''), "
               "email_change_token_new = coalesce(email_change_token_new, ''), email_change = coalesce(email_change, ''), "
@@ -115,17 +116,47 @@ def set_passwords(c: psycopg.Connection) -> None:
               "and not exists (select 1 from auth.identities i where i.user_id = u.id and i.provider = 'email')")
 
 
+
+def demo_plan(cname, ct, sender, rep, evs):
+    """A generated plan in the same shape as the real Claude run in examples/live-run."""
+    e1 = evs[0]
+    e2 = evs[1] if len(evs) > 1 else evs[0]
+    who = ct[1] if ct else "the champion"
+    title = ct[2] if ct else "their team"
+    plan = {
+        "why_now": [{"claim": f"{cname}'s weekly active users are climbing fast.", "evidence": [e1]}]
+                   + ([{"claim": f"{who} ({title}) named a deadline on the last call.", "evidence": [e2]}] if ct else []),
+        "entry_points": [{"contact_id": ct[0], "reason": f"{who} has the pain and said it on a call.", "evidence": [e2]}] if ct else [],
+        "sender": {"type": sender, "reason": f"{rep} owns the relationship." if sender == "rep" else "Early stage and low risk: the agent can open, the rep takes over on reply."},
+        "content": [{"step": 1, "carries": f"What their usage shows, and an offer to help {who}'s team move the rest over.", "evidence": [e1, e2] if ct else [e1]},
+                    {"step": 2, "carries": "A short plan sized to their deadline, with what we will do and what they will do.", "evidence": [e2]}],
+        "channel_and_sequence": [{"step": 1, "channel": "email", "purpose": f"{'%s to %s' % (rep.split()[0], who.split()[0]) if sender == 'rep' else 'Agent to ' + who.split()[0]}: open with the usage and offer help."},
+                                 {"step": 2, "channel": "meeting", "purpose": "Walk through the plan and agree dates."}],
+        "risks": [R.choice(["No economic buyer is named yet.", "The deadline is stated but not tied to a budget.", "Usage is concentrated in one team."])],
+        "what_would_change_it": "Write a new version if usage drops, a new approver appears, or the deadline moves.",
+    }
+    return plan
+
+
 def build(c: psycopg.Connection) -> None:
+    with c.transaction():   # one transaction, also on an autocommit connection
+        _build(c)
+
+
+def _build(c: psycopg.Connection) -> None:
     q = lambda sql, *p: c.execute(sql, p).fetchall()
     one = lambda sql, *p: c.execute(sql, p).fetchone()[0]
 
     # People and contacts get real-looking names.
     for email, (fn, ln) in PEOPLE.items():
+        # The name lives in auth metadata too: Atomic copies it to sales on every auth.users update.
+        c.execute("update auth.users set raw_user_meta_data = coalesce(raw_user_meta_data, '{}'::jsonb) || jsonb_build_object('first_name', %s::text, 'last_name', %s::text) where email = %s", (fn, ln, email))
         c.execute("update public.sales set first_name = %s, last_name = %s where email = %s", (fn, ln, email))
     for cid, in q("select id from public.contacts where last_name like 'Contact %%' order by id"):
         c.execute("update public.contacts set first_name = %s, last_name = %s where id = %s", (R.choice(FIRST), R.choice(LAST), cid))
 
     uid_of_sales = dict(q("select id, user_id from public.sales"))
+    owner_name = {i: f"{f} {l}" for i, f, l in q("select id, first_name, last_name from public.sales")}
     owner_uid = one("select user_id from public.sales where email = 'riley.ops@northwind.example'")
     wen_uid = one("select user_id from public.sales where email = 'wen.west@northwind.example'")
     agents = {loop: (did, uid) for did, loop, uid in q(
@@ -140,7 +171,7 @@ def build(c: psycopg.Connection) -> None:
     west_ent = [x for x in companies if x[3] == 2]
 
     # Prompts in the database, plus a proposed edit from Sam waiting for approval.
-    import pathlib, sys
+    import sys
     sys.path.insert(0, str(pathlib.Path(__file__).parent))
     from load_prompts import load
     load(c, owner_uid)
@@ -188,7 +219,11 @@ def build(c: psycopg.Connection) -> None:
         if fresh:
             status, outcome, note, edited, rby, rat = ("queued" if lvl >= 2 else "proposed"), None, None, None, None, None
         else:
-            outcome = pick_outcome(LOOPS[loop][2])
+            mix = LOOPS[loop][2]
+            if when > NOW - DAY * UPGRADE_DAYS_AGO:          # the newer model is somewhat better, not magic
+                a, e, r = mix
+                mix = (a + 0.35 * (e + r), 0.65 * e, 0.65 * r)
+            outcome = pick_outcome(mix)
             note = R.choice(NOTES[loop]) if outcome != "accepted" else None
             edited = {**payload, "edited": True} if outcome == "edited" else None
             status = "rejected" if outcome == "rejected" else ("applied" if action == "update_field" else "approved")
@@ -201,7 +236,34 @@ def build(c: psycopg.Connection) -> None:
             c.execute("insert into public.decision_evidence (decision_id, evidence_id) values (%s,%s) on conflict do nothing", (d, e))
         return d, outcome
 
+    # The real run from examples/live-run: Claude's actual plan for Acme Orchards, waiting for Maya.
+    live = json.loads((pathlib.Path(__file__).resolve().parents[1] / "examples/live-run/output.json").read_text())
+    acme = one("select id from public.companies where name = 'Acme Orchards'")
+    acme_ev = [r[0] for r in q("select e.id from public.evidence e where (e.subject_type = 'company' and e.subject_id = %s) "
+                                "or (e.subject_type = 'contact' and e.subject_id in (select id::text from public.contacts where company_id = %s)) order by e.id", str(acme), acme)]
+    did, auid = agents["account_program"]
+    when = ago(0, 2)
+    lrid = one("insert into public.runs (agent_definition_id, principal_id, \"loop\", model, prompt_version, skill_versions, autonomy_level, trigger, status, "
+               "tokens_in, tokens_out, transcript_uri, started_at, ended_at) values (%s,%s,'account_program','claude-opus-5-5','v2','{}',1,'nightly','completed',34292,3110,"
+               "'examples/live-run/transcript.json',%s,%s) returning id", did, auid, when, when + dt.timedelta(seconds=30))
+    for i, (et, name) in enumerate([("model_turn", None), ("tool_call", "get_account_context"), ("tool_result", "get_account_context"),
+                                    ("tool_call", "get_policies"), ("tool_result", "get_policies"), ("tool_call", "get_policies"), ("tool_result", "get_policies"),
+                                    ("tool_call", "get_policies"), ("tool_result", "get_policies"), ("tool_call", "search_evidence"), ("tool_result", "search_evidence"),
+                                    ("model_turn", None), ("tool_call", "propose_decision"), ("tool_result", "propose_decision"),
+                                    ("tool_call", "propose_strategy"), ("tool_result", "propose_strategy"), ("model_turn", None)], start=1):
+        c.execute("insert into public.run_events (run_id, seq, event_type, name, payload, at) values (%s,%s,%s,%s,%s,%s)",
+                  (lrid, i, et, name, Jsonb({}), when + dt.timedelta(seconds=i * 2)))
+    ld = one("insert into public.decisions (run_id, made_by, \"loop\", action, subject_type, subject_id, rationale, payload, autonomy_level, status, made_at) "
+             "values (%s,%s,'account_program','propose_strategy','company',%s,%s,'{}',1,'proposed',%s) returning id",
+             lrid, auid, str(acme), live["decision"]["rationale"], when)
+    for e in acme_ev:
+        c.execute("insert into public.decision_evidence (decision_id, evidence_id) values (%s,%s)", (ld, e))
+    plan = live["strategy_v2"]
+    c.execute("insert into public.strategies (subject_type, subject_id, version, plan, status, decision_id, proposed_by, created_at) "
+              "values ('company',%s,2,%s,'proposed',%s,%s,%s)", (str(acme), Jsonb(plan), ld, auid, when))
+
     strategy_version = {}
+    last_plan = {}
 
     # Nightly and weekly runs, oldest first. Day 0 is last night: those decisions are this morning's queue.
     for day in range(60, -1, -1):
@@ -226,7 +288,15 @@ def build(c: psycopg.Connection) -> None:
                 continue
             rid, auid, lvl = run(loop, when, model, pv, [("get_account_context", {}), ("search_evidence", {}), ("propose_decision", {})])
             for _ in range(n):
-                comp = R.choice(west_ent if loop == "account_program" else companies)
+                if loop == "account_program":
+                    # A new plan version only when the last one is at least ten days old, as in real use.
+                    pool = [x for x in west_ent if x[1] != "Acme Orchards" and last_plan.get(x[0], 999) - day >= 10]
+                    if not pool:
+                        continue
+                    comp = R.choice(pool)
+                    last_plan[comp[0]] = day
+                else:
+                    comp = R.choice(companies)
                 cid, cname, sales_id, terr = comp
                 reviewer = uid_of_sales.get(sales_id)
                 cts = contacts.get(cid, [])
@@ -236,14 +306,14 @@ def build(c: psycopg.Connection) -> None:
                 if loop == "account_program":
                     evs.append(evidence("company", cid, "product_usage", f"{cname}: weekly active users up {R.randint(20, 110)}% in {R.randint(3, 8)} weeks.", f"telemetry://{cid}/wau", when - DAY * 2, auid))
                     if ct: evs.append(evidence("contact", ct[0], "call_quote", f"{ct[1]} ({ct[2]}): \"{R.choice(['We need this before the board review.', 'Migration effort is my only worry.', 'Budget is approved for Q1.', 'Show me how it works with our warehouse.'])}\"", f"gong://calls/{cid}-{day}", when - DAY * 5, auid))
-                    payload = {"sender": {"type": R.choice(["rep", "rep", "agent"])}, "why_now": "usage", "entry_points": [ct[0]] if ct else []}
+                    payload = demo_plan(cname, ct, R.choice(["rep", "rep", "agent"]), owner_name.get(sales_id, "the rep"), evs)
                     d, outcome = decision(rid, auid, lvl, loop, "propose_strategy", "company", cid,
                                           f"{cname}: usage is climbing and {ct[1] if ct else 'the champion'} named a deadline. Propose a plan with {('the rep' if payload['sender']['type'] == 'rep' else 'an agent')} as sender.",
                                           payload, evs, when, reviewer, fresh)
                     v = strategy_version.get(cid, one("select coalesce(max(version), 0) from public.strategies where subject_type = 'company' and subject_id = %s", str(cid))) + 1
                     strategy_version[cid] = v
                     c.execute("insert into public.strategies (subject_type, subject_id, version, plan, status, decision_id, proposed_by, approved_by, created_at) values "
-                              "('company',%s,%s,%s,%s,%s,%s,%s,%s)", (str(cid), v, Jsonb({"summary": f"Plan v{v} for {cname}", **payload}),
+                              "('company',%s,%s,%s,%s,%s,%s,%s,%s)", (str(cid), v, Jsonb(payload),
                                                                  "proposed" if fresh else ("rejected" if outcome == "rejected" else "approved"), d, auid,
                                                                  None if fresh or outcome == "rejected" else reviewer, when))
                 elif loop == "deal_inspection" and deal:

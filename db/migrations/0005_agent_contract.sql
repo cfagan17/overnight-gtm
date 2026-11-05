@@ -645,6 +645,11 @@ begin
     perform ea_private.raise_denied('decision not found, or caller cannot review this record');
   end if;
   if d.review_outcome is not null then perform ea_private.raise_denied('decision already reviewed'); end if;
+  -- Pay, territories and process design are signed off by an owner, never by the rep whose
+  -- record (or pay) the decision is about.
+  if d."loop" in ('comp_ops','territory_capacity','operating_design') and ea_private.current_role_name() <> 'owner' then
+    perform ea_private.raise_denied('only owners review pay, territory and process decisions');
+  end if;
   if ea_private.current_role_name() = 'readonly' then perform ea_private.raise_denied('read-only users do not review'); end if;
   if p_outcome = 'edited' and p_edited_payload is null then perform ea_private.raise_denied('edited reviews include the edited payload'); end if;
 

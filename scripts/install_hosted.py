@@ -79,6 +79,13 @@ def main() -> None:
             for name in a.drop_schema:
                 run(conn, f"drop schema {name}", f'drop schema if exists "{name}" cascade;')
             run(conn, "reset", RESET)
+            # Keep any schema the API is configured to expose, or PostgREST cannot load its schema cache.
+            exposed = conn.execute("select string_agg(c, ',') from pg_roles r, unnest(r.rolconfig) c "
+                                   "where r.rolname = 'authenticator' and c like 'pgrst.db_schemas=%'").fetchone()[0] or ""
+            for name in a.drop_schema:
+                if name in [x.strip() for x in exposed.split("=", 1)[-1].split(",")]:
+                    run(conn, f"recreate empty exposed schema {name}",
+                        f'create schema if not exists "{name}"; grant usage on schema "{name}" to anon, authenticated, service_role;')
         for f in ATOMIC + MIGRATIONS:
             run(conn, str(f.relative_to(ROOT)), f.read_text())
         record(conn, ATOMIC + MIGRATIONS)

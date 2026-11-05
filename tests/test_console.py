@@ -113,3 +113,31 @@ def test_review_queue_shows_what_each_person_may_review(tx):
     _, ap = agent(tx, "account-program")
     act(tx, ap)
     assert attempt(tx, "select * from public.review_queue()")[0] == "denied"
+
+
+def test_reps_cannot_sign_off_their_own_comp(tx):
+    did, cuid = agent(tx, "comp-ops")
+    deal = scalar(tx, "select d.id from public.deals d join public.companies c on c.id = d.company_id where c.name = 'Acme Orchards'")
+    tx.execute("reset role")
+    d = scalar(tx, "insert into public.decisions (made_by, \"loop\", action, subject_type, subject_id, rationale, autonomy_level, status) "
+                   "values (%s, 'comp_ops', 'propose_credit', 'deal', %s, 'Full credit to the account owner.', 1, 'proposed') returning id", (cuid, str(deal)))
+    act(tx, ANA)                                                                   # Ana owns the deal, and would be paid on it
+    assert d not in [r[0] for r in tx.execute("select decision_id from public.review_queue()").fetchall()]
+    assert attempt(tx, "select public.review_decision(%s, 'accepted')", (d,))[0] == "denied"
+    act(tx, OWNER)
+    assert d in [r[0] for r in tx.execute("select decision_id from public.review_queue()").fetchall()]
+    assert scalar(tx, "select public.review_decision(%s, 'accepted')", (d,)) is not None
+
+
+def test_everyone_can_see_that_loops_ran_without_seeing_runs(tx):
+    did, auid = agent(tx, "account-program")
+    tx.execute("reset role")
+    tx.execute("insert into public.runs (agent_definition_id, principal_id, \"loop\", model, prompt_version, skill_versions, autonomy_level, "
+               "trigger, status, started_at) values (%s, %s, 'account_program', 'claude-test', 'v1', '{}', 1, 'nightly', 'completed', now() - interval '2 hours')",
+               (did, auid))
+    act(tx, CY)                                                                    # a rep: run rows are not theirs to read
+    assert scalar(tx, "select count(*) from public.runs") == 0
+    row = tx.execute("select runs_36h, model from public.loop_activity() where \"loop\" = 'account_program'").fetchone()
+    assert row[0] >= 1 and row[1] == "claude-test"
+    act(tx, auid)
+    assert attempt(tx, "select * from public.loop_activity()")[0] == "denied"

@@ -6,7 +6,7 @@ Updated 2026-11-05. "Tested" means covered by `make test` on Postgres 16 with th
 
 | Area | What the tests show | Where |
 | --- | --- | --- |
-| Compatibility with Atomic CRM | Atomic's real schema (pinned commit) loads, then all eight migrations apply on top | `scripts/build_db.py` |
+| Compatibility with Atomic CRM | Atomic's real schema (pinned commit) loads, then all nine migrations apply on top | `scripts/build_db.py` |
 | Record visibility | Owner and read-only see everything; managers see their chain; reps see their own records and their territory; agents see only their grant scope | `tests/test_control_plane.py` |
 | Write boundaries | Reps edit their own records and archive rather than delete; managers edit and delete within their chain only; records cannot be added to or moved onto accounts the caller cannot edit; only owners change territory assignments | `tests/test_control_plane.py`, `tests/test_review_regressions.py` |
 | Field masking | Discount and partner margin are not selectable by API roles, and never enter the audit log; only owners, managers and the partner manager read them through functions | `tests/test_control_plane.py`, `tests/test_review_regressions.py` |
@@ -25,7 +25,10 @@ Updated 2026-11-05. "Tested" means covered by `make test` on Postgres 16 with th
 | Replay evals | Scorers reward the right behavior and penalize stating weak evidence as fact, wrong sender and uncited evidence | `tests/test_replay.py` |
 | Sidecars (logic only) | Ingest fills the visibility mirror; a level 2 Salesforce change waits for the owner, is refused for a non-owner, and is written back with its decision id; HubSpot request shapes; only the worker can claim changes | `tests/test_sidecars.py` (fake HTTP sessions) |
 | Ask-your-data queries | Each starter query in `examples/queries/` runs as an owner on the seeded database | `tests/test_queries.py` |
-| Hosted Supabase | Installs cleanly on a real project (Postgres 17), and the suite passes against it: 75 passed, 7 skipped. The first run found a default-grant gap the shim did not model, now fixed and modeled | `docs/supabase-hosted-check.md` |
+| Hosted Supabase | Installs cleanly on a real project (Postgres 17), and the suite passes against it: 88 passed, 9 skipped (the skipped tests need a scratch database). The first run found a default-grant gap the shim did not model, now fixed and modeled | `docs/supabase-hosted-check.md` |
+| Console data paths | Prompt versions: only owners propose and approve, agents read only their own loop's approved prompt, and the runner uses it. Insight views respect each person's access. The review queue shows only what each person may approve; reps cannot sign off comp, territory or process decisions, even on their own deals. Loop activity shows that loops ran without exposing run rows | `tests/test_console.py`, `tests/test_runtime.py` |
+| Slack | The digest goes to each mapped person with only what they may review; a click acts as the mapped person, so a rep without access changes nothing; forged and replayed requests are refused; signed-in users cannot call the Slack functions | `tests/test_slack.py`, `tests/test_console.py` |
+| Demo history | The generator loads, approves all 12 prompts and leaves each demo person a queue | `tests/test_demo.py` |
 | Fit assessment | Recommendations for small teams, Salesforce companies and greenfield builds; reading Salesforce describe output and a Postgres schema | `tests/test_fit_assessment.py` |
 
 ## Design only, not yet tested
@@ -38,6 +41,8 @@ Updated 2026-11-05. "Tested" means covered by `make test` on Postgres 16 with th
 | Salesforce and HubSpot against real systems | No test org or portal here | A Salesforce scratch org and a HubSpot developer portal |
 | Row-level security at scale | Seed has 24 accounts | 1M deals and a 5-level manager chain; measure query time |
 | Partner intelligence on public data | The snapshot is partial (37 of 119 listings rendered) and the loop needs a live model | Re-capture the listings, run `examples/partner-intelligence-public/run.py` |
+| Console in the browser | Checked by screenshots as five people against the hosted demo, not by automated browser tests | Playwright tests per role |
+| Slack against a real workspace | The digest and handler are tested against the database with signed requests, not a live Slack app | Install the app in a test workspace |
 | Atomic's UI on the hardened schema | Tests cover the database, not the React app | Run the Atomic app against the hardened database and click through as each role |
 
 ## Known limits

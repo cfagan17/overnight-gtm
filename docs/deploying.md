@@ -50,4 +50,34 @@ python agents/runtime/runner.py --loop account_program --input '{"company_id": 4
   --model <anthropic model id>
 ```
 
-Review queue for humans: decisions with `status in ('proposed','queued')` on records the reviewer can see, approved or edited with `public.review_decision(...)`. Atomic's UI does not have a review screen yet; that is the first UI work to do.
+Review queue for humans: `public.review_queue()` returns what the signed-in person may approve, and `public.review_decision(...)` records their answer. The console and the Slack digest both use these.
+
+## The console
+
+`console/` is a static Vite app. It needs only the project URL and the publishable (anon) key, because every rule lives in the database.
+
+```bash
+cd console
+VITE_SUPABASE_URL=https://<project>.supabase.co VITE_SUPABASE_ANON_KEY=<publishable key> npm run build
+```
+
+Host `dist/` anywhere. On Vercel, import the repo with the root directory set to `console`; `vercel.json` handles client-side routes. Setting your own URL turns off demo mode: no demo banner and no person switcher.
+
+Turn off public sign-ups in Supabase Auth. Anyone who can sign up gets an `auth.users` row, and while a person with no `sales` or `principals` row sees nothing, there is no reason to allow it.
+
+## Slack
+
+1. Create a Slack app with a bot token (`chat:write`) and Interactivity on.
+2. Map people: as an owner, insert rows into `public.slack_user_map (slack_user_id, user_id)`.
+3. Each morning after the loops run: `python -m integrations.slack.digest` with `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SLACK_BOT_TOKEN` and `CONSOLE_URL`. Use `--dry-run` first.
+4. Point Interactivity at `python -m integrations.slack.server` (any WSGI host) with `SLACK_SIGNING_SECRET` set.
+
+Only the service role can call `slack_review_queue` and `slack_review_decision`, and both act as the mapped person, so a click in Slack passes exactly the checks a click in the console does. Edits always open the console.
+
+## The public demo
+
+```bash
+python scripts/install_hosted.py --dsn "$SUPABASE_DB_URL" --reset --yes-wipe-public-schema --seed --demo --demo-logins
+```
+
+This wipes the project and loads Northwind Data with two months of generated history (fixed seed) and the real Claude run in `examples/live-run/`. Every demo person signs in with the password `overnight-demo`. Run it again to reset the demo, for example nightly from cron. Run the test suite against the hosted project only after an install without `--demo`: the tests expect the plain seed.

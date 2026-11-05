@@ -173,10 +173,32 @@ begin
   from public.decisions d
   where d.review_outcome is null and d.status in ('proposed','queued')
     and ea_private.can_review_subject(d.subject_type, d.subject_id)
+    and (d."loop" not in ('comp_ops','territory_capacity','operating_design') or ea_private.current_role_name() = 'owner')
   order by d.made_at;
 end $$;
 revoke execute on function public.review_queue() from public, anon;
 grant execute on function public.review_queue() to authenticated, service_role;
+
+-- When each loop last ran, and how often in the last 36 hours. Run rows themselves stay
+-- private to owners, managers and the agent; this summary carries no content, so any signed-in
+-- person can see that the loops are running.
+create or replace function public.loop_activity()
+returns table ("loop" text, last_run_at timestamptz, runs_36h bigint, model text)
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not ea_private.is_human() then
+    perform ea_private.raise_denied('loop_activity is for people');
+  end if;
+  if ea_private.current_role_name() = 'none' then
+    return;
+  end if;
+  return query
+  select r."loop", max(r.started_at), count(*) filter (where r.started_at > now() - interval '36 hours'),
+         (array_agg(r.model order by r.started_at desc))[1]
+  from public.runs r group by r."loop";
+end $$;
+revoke execute on function public.loop_activity() from public, anon;
+grant execute on function public.loop_activity() to authenticated, service_role;
 
 -- The same queue for a Slack user, for their morning digest.
 create or replace function public.slack_review_queue(p_slack_user text)

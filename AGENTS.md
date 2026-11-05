@@ -21,7 +21,9 @@ make demo     # builds ea_dev with the Northwind seed
 
 Tests need `EA_TEST_DSN` pointing at a Postgres 16 server where the user can create databases. Never point it at a real project: the build drops and recreates databases.
 
-To check an installed project instead (for example Supabase after `scripts/install_hosted.py --seed`), set `EA_HOSTED_DSN`. Tests then run in rolled-back transactions against that project, and the ones that need scratch databases are skipped.
+To check an installed project instead (for example Supabase after `scripts/install_hosted.py --seed`), set `EA_HOSTED_DSN`. Tests then run in rolled-back transactions against that project, and the ones that need scratch databases are skipped. Install without `--demo` first: the tests expect the plain seed.
+
+The console (`console/`) holds no rules. Any new action it needs is a database function with its own checks, plus a test, never logic in React. Build with `cd console && npx tsc -b && npx vite build`.
 
 ## Style
 
