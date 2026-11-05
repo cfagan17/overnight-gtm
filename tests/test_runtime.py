@@ -63,3 +63,25 @@ def test_scripted_capture_is_refused_at_level_1(rdsn, tmp_path):
     with psycopg.connect(rdsn) as c:
         assert c.execute("select count(*) from public.commitments where subject_id = %s", (str(company),)).fetchone()[0] == 1
         assert c.execute("select stage from public.deals where id = %s", (deal,)).fetchone()[0] != "in-negociation"
+
+
+def test_runner_uses_the_approved_prompt_from_the_database(rdsn, tmp_path):
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from load_prompts import load
+    from helpers import OWNER
+    with psycopg.connect(rdsn) as c:
+        load(c, OWNER)
+        c.execute("set local role authenticated")
+        c.execute("select set_config('request.jwt.claims', %s, true)", (json.dumps({"sub": OWNER, "role": "authenticated"}),))
+        v = c.execute("select public.propose_prompt_version('account_program', %s, 'test')",
+                      ((ROOT / "agents/loops/account_program/prompt.md").read_text() + "\nMARKER-V2",)).fetchone()[0]
+        c.execute("select public.approve_prompt('account_program', %s)", (v,))
+    company, def_id = ids(rdsn, "select c.id, (select id from public.agent_definitions where name='account-program') "
+                                "from public.companies c where c.name = 'Acme Orchards'")
+    script = json.loads((ROOT / "examples/scripts/account_program.json").read_text())
+    out = run_loop("account_program", DbTransport(rdsn, agent_uid(def_id)), ScriptedClient(script),
+                   {"company_id": company}, transcripts=tmp_path)
+    with psycopg.connect(rdsn) as c:
+        assert c.execute("select prompt_version from public.runs where id = %s", (out["run_id"],)).fetchone()[0] == f"db:v{v}"
+    transcript = json.loads(next(tmp_path.glob(f"run-{out['run_id']}-*.json")).read_text())
+    assert "MARKER-V2" in transcript["system"]

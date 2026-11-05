@@ -11,7 +11,7 @@ from helpers import ADMIN_DSN, HOSTED_DSN, build  # noqa: E402
 # Supabase project installed with scripts/install_hosted.py --seed). Every test that runs there
 # works inside a transaction that is rolled back. Tests that need to create scratch databases or
 # commit data are skipped.
-NEEDS_SCRATCH_DB = {"test_runtime.py", "test_sidecars.py"}
+NEEDS_SCRATCH_DB = {"test_runtime.py", "test_sidecars.py", "test_demo.py"}
 NEEDS_SCRATCH_TEST = {"test_stock_atomic_has_high_findings"}
 
 

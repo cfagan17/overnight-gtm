@@ -68,7 +68,8 @@ def main() -> None:
     ap.add_argument("--reset", action="store_true")
     ap.add_argument("--yes-wipe-public-schema", action="store_true")
     ap.add_argument("--drop-schema", action="append", default=[], help="with --reset: also drop this schema (repeatable)")
-    ap.add_argument("--demo", action="store_true", help="also load examples/demo/acme_signals.sql (needs --seed)")
+    ap.add_argument("--demo", action="store_true", help="also load the demo signals and two months of demo history (needs --seed)")
+    ap.add_argument("--demo-logins", action="store_true", help="with --demo: let the demo people sign in (public demo console)")
     a = ap.parse_args()
     if a.reset and not a.yes_wipe_public_schema:
         sys.exit("--reset wipes the public schema and every auth user. Add --yes-wipe-public-schema to confirm.")
@@ -85,6 +86,13 @@ def main() -> None:
             run(conn, str(SEED.relative_to(ROOT)), SEED.read_text())
         if a.demo:
             run(conn, str(DEMO.relative_to(ROOT)), DEMO.read_text())
+            sys.path.insert(0, str(ROOT / "scripts"))
+            import demo_history
+            demo_history.build(conn)
+            print("ok  scripts/demo_history.py")
+            if a.demo_logins:
+                demo_history.set_passwords(conn)
+                print(f"ok  demo sign-ins, password: {demo_history.DEMO_PASSWORD}")
         conn.execute("notify pgrst, 'reload schema'")
     print("done")
 

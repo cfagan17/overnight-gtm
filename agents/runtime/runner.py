@@ -193,10 +193,13 @@ class ScriptedClient:
 
 # The loop ------------------------------------------------------------------------------
 
-def load_loop(name: str) -> dict:
+def load_loop(name: str, prompt_body: str | None = None) -> dict:
+    """Loop definition. prompt_body, when given, is the approved prompt from the database
+    (loop_prompts), which wins over the starting version in agents/loops/<loop>/prompt.md."""
     d = AGENTS / "loops" / name
     spec = yaml.safe_load((d / "loop.yaml").read_text())
-    spec["prompt_text"] = (AGENTS / "loops" / "_shared.md").read_text() + "\n\n" + (d / spec["prompt"]).read_text()
+    body = prompt_body if prompt_body is not None else (d / spec["prompt"]).read_text()
+    spec["prompt_text"] = (AGENTS / "loops" / "_shared.md").read_text() + "\n\n" + body
     if spec.get("technical_notes"):
         # The prompt stays plain English. Tool and action names live in loop.yaml.
         spec["prompt_text"] += "\n\n# Technical notes\n\n" + spec["technical_notes"] + "\n"
@@ -207,6 +210,13 @@ def load_loop(name: str) -> dict:
 def run_loop(loop_name: str, transport, client, loop_input: dict, max_turns: int = 30,
              transcripts: pathlib.Path | None = None, trigger: str | None = None, today: str | None = None) -> dict:
     spec = load_loop(loop_name)
+    try:  # the approved prompt in the database, if prompts have been loaded there
+        rows = transport.rpc("get_loop_prompt", {"p_loop": loop_name}, setof=True) or []
+    except Exception:
+        rows = []
+    if isinstance(rows, list) and rows and isinstance(rows[0], dict) and rows[0].get("body"):
+        spec = load_loop(loop_name, rows[0]["body"])
+        spec["prompt_version"] = f"db:v{rows[0]['version']}"
     skill_versions = {s: "file:" + hashlib.sha256(t.encode()).hexdigest()[:8] for s, t in spec["skill_texts"].items()}
     definition = transport.my_definition()
     run_id = transport.rpc("start_run", {"p_model": client.model, "p_prompt_version": spec["prompt_version"],
