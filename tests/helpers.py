@@ -18,6 +18,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from build_db import build  # noqa: E402
 
 ADMIN_DSN = os.environ.get("EA_TEST_DSN", "postgresql://postgres@/postgres?host=/tmp&port=54329")
+# Set to run against an installed project (scripts/install_hosted.py --seed) instead of fresh databases.
+HOSTED_DSN = os.environ.get("EA_HOSTED_DSN")
 
 # Seeded principals (db/seed/seed.sql)
 OWNER = "00000000-0000-0000-0000-000000000001"       # Riley, RevOps, owner role
