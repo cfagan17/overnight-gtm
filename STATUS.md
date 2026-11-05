@@ -31,7 +31,7 @@ Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with th
 
 | Area | Why not yet | What would test it |
 | --- | --- | --- |
-| Loop quality with a live model | Needs a model API key and real data | Run loops on real accounts, record reviews, watch `loop_review_stats` |
+| Loop quality with a live model | One live run on demo data is documented in `examples/live-run/`. One run shows the loop works, not how often it is right | Run loops on real accounts, record reviews, watch `loop_review_stats` |
 | Eval sets | The starter sets are synthetic and small (5 and 6 cases) | Replace with about 200 human-verified past cases per loop |
 | Promotion thresholds (80%, 95%) | Starting guesses | The first 100 real reviews per loop |
 | Salesforce and HubSpot against real systems | No test org or portal here | A Salesforce scratch org and a HubSpot developer portal |

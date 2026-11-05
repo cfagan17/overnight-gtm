@@ -1,0 +1,117 @@
+{
+ "decision": {
+  "id": 2,
+  "action": "propose_strategy",
+  "status": "queued",
+  "rationale": "Act now. Trial WAU went from 41 to 87 (#1). Compute credits are 2.3x, mostly scheduled pipeline jobs (#2), which is the scheduler pain Priya named (#3). Way in: Priya, who asked twice for onboarding help (#6) and said she can make the case to Jordan (#3). Jordan's objection is migration effort (#4), and he skipped the last demo (#6). Sender is Maya (rep), as she asked in her v1 edit; no new evidence goes against that. Risk: the deal closes 11-12, but a multi-year deal needs about 3 weeks of procurement review (#5). #7 is weak and is only used to shape a question.",
+  "autonomy_level": 1
+ },
+ "cites_evidence": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7
+ ],
+ "strategy_v2": {
+  "risks": [
+   "The close date is 2026-11-12, but a multi-year deal needs a procurement review of about three weeks. If the term is multi-year, the close date is probably unrealistic. The rep should confirm the term and re-date the deal.",
+   "Jordan's engagement is falling (he skipped the last demo). If the migration worry isn't answered, Priya may not be able to carry the case.",
+   "MEDDPICC gaps: no evidence yet of who the economic buyer is or what the decision criteria are. Titles alone don't establish authority.",
+   "Priya is a potential champion only partly shown: she has said she can make the case but hasn't acted on it yet."
+  ],
+  "sender": {
+   "type": "rep",
+   "reason": "Maya, the account owner, makes all contact. In her v1 review she wrote: 'Anything to Acme comes from me, not the agent.' No new evidence goes against that, so this plan follows her edit."
+  },
+  "content": [
+   {
+    "step": 1,
+    "carries": "We see scheduled pipeline jobs already driving your trial usage (2.3x credits, WAU 41 to 87). Here is an onboarding plan to move the rest off the homegrown scheduler before Q2. Open question: does any of this help the data platform team you're growing? Ask it as a question only; it comes from a job-posting page, which is weak evidence.",
+    "evidence": [
+     1,
+     2,
+     3,
+     6,
+     7
+    ]
+   },
+   {
+    "step": 2,
+    "carries": "A phased migration with onboarding support and an estimate of Jordan's team's effort, aimed directly at 'cannot take on another six-month project this year.'",
+    "evidence": [
+     4,
+     3
+    ]
+   },
+   {
+    "step": 3,
+    "carries": "Confirm whether the deal is multi-year and agree the procurement review steps, owners and dates.",
+    "evidence": [
+     5
+    ]
+   }
+  ],
+  "why_now": [
+   {
+    "claim": "Trial weekly active users rose from 41 to 87 over six weeks.",
+    "evidence": [
+     1
+    ]
+   },
+   {
+    "claim": "Trial compute credit use is 2.3x six weeks ago, mostly scheduled pipeline jobs, which is the workload Priya wants off the homegrown scheduler by Q2.",
+    "evidence": [
+     2,
+     3
+    ]
+   }
+  ],
+  "entry_points": [
+   {
+    "reason": "Priya Shah has the pain: she wants pipeline jobs off the homegrown scheduler by Q2. She said she can make the case to Jordan and has asked twice about onboarding help.",
+    "evidence": [
+     3,
+     6
+    ],
+    "contact_id": 2
+   },
+   {
+    "reason": "Jordan Lee is the person Priya has to convince. His stated blocker is migration effort: his team can't take on another six-month project this year. He skipped the last demo and sent a delegate, so reach him through Priya, not cold.",
+    "evidence": [
+     3,
+     4,
+     6
+    ],
+    "contact_id": 1
+   },
+   {
+    "reason": "Casey Ruiz said any multi-year deal goes through a procurement review of about three weeks. Engage early so the paperwork doesn't push the close date.",
+    "evidence": [
+     5
+    ],
+    "contact_id": 3
+   }
+  ],
+  "channel_and_sequence": [
+   {
+    "step": 1,
+    "channel": "email",
+    "purpose": "Maya to Priya: offer concrete onboarding help for moving scheduled pipeline jobs, and ask her to set up a short session with Jordan."
+   },
+   {
+    "step": 2,
+    "channel": "meeting",
+    "purpose": "Maya and Priya with Jordan (Priya brings him in): a migration plan sized to fit his team's capacity this year, answering his six-month worry."
+   },
+   {
+    "step": 3,
+    "channel": "email",
+    "purpose": "Maya to Casey: confirm the term length and start the procurement review now, given the roughly three-week timeline."
+   }
+  ],
+  "what_would_change_it": "Write a new version if Priya brings in Jordan or another approver (champion shown by action). Also if Jordan states his view on the spend, Casey confirms the term and procurement dates, or trial usage drops."
+ }
+}

@@ -1,0 +1,308 @@
+{
+ "run_id": 1,
+ "loop": "account_program",
+ "system": "You are one loop in a GTM system where AI agents and people work together. You act only through\nthe tools you are given. Each tool is a database function that checks your permissions, your\nautonomy level, your scope and the company's policies before it does anything. If a tool refuses,\nthe refusal is correct: read the reason, adjust, or escalate. Never try to get around a refusal.\n\nHow this system works:\n- Evidence is a sourced observation. Strength comes from its kind, not from you.\n- Decisions are choices you propose, citing evidence ids. Humans review them. Their review\n  (accepted, edited, rejected, and their edits) is how this loop is measured and how it earns\n  more autonomy. Write rationales a busy reviewer can check in ten seconds.\n- No id, no claim. If you cannot cite it, do not state it.\n- If you are unsure, or evidence conflicts, call escalate with the reason and stop.\n- Your loop's instructions below are written in plain English by the people who own the loop.\n  Every proposal they describe is filed as a decision citing evidence. The technical notes at\n  the end say which tool and action to use.\n- Your current autonomy level, scope and today's date are given in the run context below.\n\nFinish with a short plain summary of what you did and what you left for a human.\n\n\nYou write the approach plan for one account. Your job ends at a proposed plan. Other loops do\nresearch, outreach and follow-up.\n\n1. Read everything we know about the account: contacts, deals, evidence, past plans and how the\n   rep reviewed them, open commitments, and whether the account is held out of an experiment.\n2. If you need more, search the evidence. Record anything new you find.\n3. Check the contact policies for anyone you plan to approach.\n4. Follow the account-plan skill. Say why now, who to contact, who on our side should reach out,\n   and what to say. Cite the evidence behind every claim.\n5. If nothing recent and strong supports reaching out now, propose waiting, and say what signal\n   would change that. If the account is held out, still write the plan. It is kept for\n   comparison and never used.\n6. If the rep edited the last plan, follow their edit unless new evidence says otherwise, and say\n   which.\n\n\n# Technical notes\n\nFile one decision with action \"propose_strategy\" (subject: the company) citing every evidence id the plan uses, then call propose_strategy with that decision id and the plan.\n\n\n# Skills\n\n# Skill: evidence\n\nEvery loop loads this skill. It is the rule that makes everything else checkable.\n\n## What evidence is\nOne sourced observation about one subject: a quote from a call, an email from the person, a usage\nmetric, a contract on file, something a seller saw first-hand. Record it with `record_evidence`.\nGive the source (`source_uri`) precisely enough that a human can open it: a call link with a\ntimestamp, an email id, a query.\n\n## Strength is not yours to set\nThe database sets strength from the kind of evidence. You never grade your own certainty.\n\n| Strong | Weak |\n| --- | --- |\n| call_quote, email_from_contact, signature_block, meeting_attended, product_usage, crm_record, rep_observation | partner_report, enrichment_vendor, web_page, social_post, inferred |\n\n## Rules\n1. No id, no claim. Every statement about an account or a person cites evidence ids.\n2. Weak evidence can shape a question to ask. It is never stated as a fact.\n3. Never infer a person's role, seniority or authority without evidence of it. A blank is better\n   than a confident wrong fact, because nobody can tell the wrong fact is wrong.\n4. When new evidence contradicts old evidence, record the new row and call `supersede_evidence`.\n   Do not argue with history. Evidence is append-only.\n5. When evidence conflicts and you cannot tell which is right, call `escalate` with both ids.\n\n\n# Skill: account plan\n\nMethod for the account program loop: how to plan the approach to one account.\n\n## Order of work\n1. Why now. Find the one or two strongest recent signals (usage change, new leader, funding,\n   a project, a trigger event in the buyer's words). If nothing is recent and strong, the right\n   plan is to wait, and say what signal would change that.\n2. Entry points. Up to three people, each with the reason they are the right door, from evidence.\n   Prefer people with pain and influence over people with titles.\n3. Sender. Who on our side should make first contact: rep, executive, SE, partner, or agent.\n   - Partner-sourced or partner-owned accounts go through the partner (policy).\n   - Strategic accounts and executives get a human sender. Agents send only where the reviewer\n     history shows they are accepted for this segment.\n4. Channel and sequence. The first three touches and the purpose of each. Each touch earns the next.\n5. Content. What each touch carries, tied to evidence of what this account cares about.\n6. Risks. What would make this plan wrong.\n7. What would change it. The signal that should trigger a new version.\n\n## Learn from review\nRead the last versions of the plan and how the owner reviewed them (accepted, edited, rejected,\nand their edits). If owners keep changing the same thing, do it their way and say so.\n\n## Output shape\n```json\n{\"why_now\": [{\"claim\": \"...\", \"evidence\": [1]}],\n \"entry_points\": [{\"contact_id\": 1, \"reason\": \"...\", \"evidence\": [2]}],\n \"sender\": {\"type\": \"rep|executive|se|partner|agent\", \"reason\": \"...\"},\n \"channel_and_sequence\": [{\"step\": 1, \"channel\": \"email\", \"purpose\": \"...\"}],\n \"content\": [{\"step\": 1, \"carries\": \"...\", \"evidence\": [3]}],\n \"risks\": [\"...\"], \"what_would_change_it\": \"...\"}\n```\nEvery `evidence` id must also be cited by the decision you file with the plan. The database\nrefuses the plan otherwise.\n\n\n# Skill: MEDDPICC\n\nQualification framework for enterprise and mid-market deals. Used by deal inspection,\nconversation capture and the account program. Each element is either evidenced or unknown.\nNever mark an element as met without an evidence id.\n\n| Element | Met when there is evidence of | Typical strong evidence |\n| --- | --- | --- |\n| Metrics | A number the buyer cares about and our effect on it | call_quote with the number |\n| Economic buyer | The person who can approve the spend, and their stated view | meeting_attended plus call_quote |\n| Decision criteria | What the buyer will compare on, in their words | call_quote, email_from_contact |\n| Decision process | The steps, people and dates to a decision | email_from_contact with the plan |\n| Paper process | Legal, security review, procurement steps and owners | email_from_contact, crm_record |\n| Identify pain | The problem, its cost, and who feels it | call_quote |\n| Champion | Someone with influence who sells for us when we are not there, and has acted on it | email_from_contact showing action |\n| Competition | Alternatives being considered, including doing nothing | call_quote |\n\n## How to use it\n- Score each element as evidenced, partial (weak evidence only) or unknown. Report the ids.\n- A deal in a late stage with economic buyer or paper process unknown is a risk. Say so.\n- A champion is shown by action (introductions, internal forwarding, pushing a meeting), not by\n  friendliness. Friendly with no action is \"partial\".\n- Do not fill elements from enrichment data or job titles alone.\n",
+ "messages": [
+  {
+   "role": "user",
+   "content": "{\n  \"run_context\": {\n    \"loop\": \"account_program\",\n    \"autonomy_level\": 1,\n    \"today\": \"2026-11-04\"\n  },\n  \"input\": {\n    \"company_id\": 1\n  }\n}"
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "type": "tool_use",
+     "id": "toolu_01NcXKA4ppTCu1R4CZ4r1FDs",
+     "name": "get_account_context",
+     "input": {
+      "company_id": 1
+     },
+     "caller": {
+      "type": "direct"
+     }
+    }
+   ]
+  },
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_01NcXKA4ppTCu1R4CZ4r1FDs",
+     "content": "{\"company\": {\"id\": 1, \"fts\": \"'acme':1 'acmeorchards':5 'ca':7 'example':6 'https':4 'orchards':2 'technology':3\", \"city\": null, \"name\": \"Acme Orchards\", \"size\": null, \"sector\": \"Technology\", \"address\": null, \"country\": \"US\", \"revenue\": null, \"segment\": \"enterprise\", \"website\": \"https://acmeorchards.example\", \"zipcode\": null, \"sales_id\": 5, \"created_at\": \"2026-11-05T02:41:33.681023+00:00\", \"state_abbr\": \"CA\", \"description\": null, \"linkedin_url\": null, \"phone_number\": null, \"territory_id\": 2, \"context_links\": null, \"tax_identifier\": null, \"parent_company_id\": null}, \"contacts\": [{\"id\": 1, \"name\": \"Jordan Lee\", \"title\": \"VP Engineering\", \"status\": \"warm\", \"do_not_contact\": false}, {\"id\": 2, \"name\": \"Priya Shah\", \"title\": \"Head of Data\", \"status\": \"warm\", \"do_not_contact\": false}, {\"id\": 3, \"name\": \"Casey Ruiz\", \"title\": \"Director of Procurement\", \"status\": \"warm\", \"do_not_contact\": false}], \"evidence\": [{\"id\": 2, \"kind\": \"product_usage\", \"claim\": \"Compute credit use in the trial is 2.3 times what it was six weeks ago, mostly scheduled pipeline jobs.\", \"strength\": \"strong\", \"source_uri\": \"telemetry://acme-orchards/trial/compute-credits\", \"observed_at\": \"2026-11-03T02:41:33.902143+00:00\"}, {\"id\": 1, \"kind\": \"product_usage\", \"claim\": \"Trial workspace weekly active users rose from 41 to 87 over the last six weeks.\", \"strength\": \"strong\", \"source_uri\": \"telemetry://acme-orchards/trial/weekly-active-users\", \"observed_at\": \"2026-11-03T02:41:33.902143+00:00\"}, {\"id\": 6, \"kind\": \"rep_observation\", \"claim\": \"Maya: Priya asked twice about onboarding help. Jordan skipped the last demo and sent a delegate.\", \"strength\": \"strong\", \"source_uri\": \"crm://notes/acme-orchards/2026-10-30\", \"observed_at\": \"2026-10-31T02:41:33.902143+00:00\"}, {\"id\": 5, \"kind\": \"email_from_contact\", \"claim\": \"Casey Ruiz: \\\"Anything multi-year has to go through our procurement review, which runs about three weeks.\\\"\", \"strength\": \"strong\", \"source_uri\": \"mail://acme-orchards/casey.ruiz/2026-10-28\", \"observed_at\": \"2026-10-29T02:41:33.902143+00:00\"}, {\"id\": 7, \"kind\": \"web_page\", \"claim\": \"Acme Orchards posted two data platform engineer roles this month.\", \"strength\": \"weak\", \"source_uri\": \"https://careers.acmeorchards.example/data-platform\", \"observed_at\": \"2026-10-27T02:41:33.902143+00:00\"}, {\"id\": 4, \"kind\": \"call_quote\", \"claim\": \"Jordan Lee: \\\"My worry is the migration. My team cannot take on another six-month project this year.\\\"\", \"strength\": \"strong\", \"source_uri\": \"gong://calls/acme-2026-10-21#t=31:40\", \"observed_at\": \"2026-10-22T02:41:33.902143+00:00\"}, {\"id\": 3, \"kind\": \"call_quote\", \"claim\": \"Priya Shah: \\\"If we can move our pipeline jobs off the homegrown scheduler by Q2, I can make the case to Jordan.\\\"\", \"strength\": \"strong\", \"source_uri\": \"gong://calls/acme-2026-10-21#t=14:05\", \"observed_at\": \"2026-10-22T02:41:33.902143+00:00\"}], \"contracts\": [], \"open_deals\": [{\"id\": 1, \"name\": \"Acme Orchards - Platform\", \"stage\": \"proposal-sent\", \"amount\": 125000, \"partners\": null, \"forecast_category\": \"best_case\", \"expected_closing_date\": \"2026-11-12\"}], \"strategies\": [{\"id\": 1, \"plan\": {\"sender\": {\"type\": \"rep\", \"reason\": \"Maya owns the Priya relationship\"}, \"why_now\": [{\"claim\": \"Trial usage climbing\", \"evidence\": []}]}, \"status\": \"approved\", \"version\": 1, \"review_note\": \"I own the relationship with Priya. Anything to Acme comes from me, not the agent.\", \"edited_payload\": {\"sender\": {\"type\": \"rep\", \"reason\": \"Maya owns the Priya relationship\"}}, \"review_outcome\": \"edited\"}], \"in_holdout_for\": [], \"open_commitments\": []}",
+     "is_error": false
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "type": "thinking",
+     "thinking": "",
+     "signature": "CAQS7QUKEAgTGAI4AUIIdGhpbmtpbmcSDAx9zVECfqREpfFPtBoMD07v57ihHD0pQRGYIjB/pTxY8fvCdabETPzYOFBrpAzNpC9/lZPrCNvhsvbTAlAUk2J+8sm9k5zkn8aoUIIqigVwejPtdnDOuqfct7U02/YwzcxEXc1U8/NQ+2E9qv6QUtZqxW8JsifIfoNVokLzrfa9/GybtUlqWjbpbXHAjTbosyb4hFcKHYoJfolHba6Ek2lleXIA+TFnbiM78KbulfL69Bgc34POoMO9ba7X06O133tzKBOvJx47ILSV3CgcfaYwVC3pFhGOSRetD8KsIwo/sUqY7/giNk/hBXgidHPDjzycJdihttjX2PoIOU2NwwYyL0kGBs2lzoRiKOy85rVfC71x9vqbpG8c4gXDZ7eAAbl2YDRXzF/hee8QRpfnQOUYdVC1fsnDbUhrILeLkt8dlavsDuud4j/supkzTT/ZY0qPM5U38rIwsHrzrG3xkbDqgVSq+l7X3be3xLT+IkZJOFi/WEkn3fvUqx4wX2XrgVuT55TEKRdSf4/Ind4nkWjz18bRLqDQj7gmV4OssU7N0ZOhaoVxewrFkOUgLVGBeuhr68CuNILLisDhOhvw4ruC2w4eCQCXjnNpCNdvA0fMuaKAq2afWqc+YxRWS2X75CQGTI8QQVRZnvOLPfTSp1cZarjx4dMHM0xXB4wRdEBF9FNF/IBhjWDPzPVQA8duxzDVKhsvujMHfWmu/AO4phugt/tr+OzTSpteAU4eCQEZ9N5qSj3/TwVjTebrxLJErRLzu8j/SaQxthyZmtkHJ+eEHCyTaPlDywnA1unhCD5E5RzSW/9IWGomCPu+O85ZPXEGif5VNgabK3LGvgrIL2soXNhhLF6v0QtVBSgBG7nhcyp3ZE/xlDfjyqmUbNntAqc+YEtthkBof9AwM5qflGXLLUtKjQyfrssbQQQ6JwCIInR0/agu4xxFPmjxAlJIQpbXX3dgsTyE1xgB"
+    },
+    {
+     "type": "tool_use",
+     "id": "toolu_0195qaR5s3NBNvhsYcGXaTVZ",
+     "name": "get_policies",
+     "input": {
+      "contact_id": 2
+     },
+     "caller": {
+      "type": "direct"
+     }
+    },
+    {
+     "type": "tool_use",
+     "id": "toolu_01MfheMke9CXboYpBp4Moesj",
+     "name": "get_policies",
+     "input": {
+      "contact_id": 1
+     },
+     "caller": {
+      "type": "direct"
+     }
+    },
+    {
+     "type": "tool_use",
+     "id": "toolu_01PScv6iw3xUTswDe6macAvP",
+     "name": "get_policies",
+     "input": {
+      "contact_id": 3
+     },
+     "caller": {
+      "type": "direct"
+     }
+    },
+    {
+     "type": "tool_use",
+     "id": "toolu_01D44vGFz2WN9v5cCPF6xwVG",
+     "name": "search_evidence",
+     "input": {
+      "subject_type": "deal",
+      "subject_id": "1"
+     },
+     "caller": {
+      "type": "direct"
+     }
+    }
+   ]
+  },
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_0195qaR5s3NBNvhsYcGXaTVZ",
+     "content": "{\"contact\": {\"do_not_contact\": false, \"touches_last_14d\": 0, \"partner_credit_on_account\": []}, \"policies\": [{\"name\": \"Max 3 touches per contact in 14 days\", \"params\": {\"per_contact\": 3, \"window_days\": 14}, \"rule_type\": \"max_touches\"}, {\"name\": \"Respect do-not-contact list\", \"params\": {}, \"rule_type\": \"do_not_contact\"}, {\"name\": \"Partner-sourced accounts go through the partner\", \"params\": {\"credit\": [\"sourced\", \"resold\"]}, \"rule_type\": \"partner_route\"}, {\"name\": \"No agent-sent SMS\", \"params\": {\"channels\": [\"sms\"], \"sender_types\": [\"agent\"]}, \"rule_type\": \"blocked_channel\"}]}",
+     "is_error": false
+    },
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_01MfheMke9CXboYpBp4Moesj",
+     "content": "{\"contact\": {\"do_not_contact\": false, \"touches_last_14d\": 0, \"partner_credit_on_account\": []}, \"policies\": [{\"name\": \"Max 3 touches per contact in 14 days\", \"params\": {\"per_contact\": 3, \"window_days\": 14}, \"rule_type\": \"max_touches\"}, {\"name\": \"Respect do-not-contact list\", \"params\": {}, \"rule_type\": \"do_not_contact\"}, {\"name\": \"Partner-sourced accounts go through the partner\", \"params\": {\"credit\": [\"sourced\", \"resold\"]}, \"rule_type\": \"partner_route\"}, {\"name\": \"No agent-sent SMS\", \"params\": {\"channels\": [\"sms\"], \"sender_types\": [\"agent\"]}, \"rule_type\": \"blocked_channel\"}]}",
+     "is_error": false
+    },
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_01PScv6iw3xUTswDe6macAvP",
+     "content": "{\"contact\": {\"do_not_contact\": false, \"touches_last_14d\": 0, \"partner_credit_on_account\": []}, \"policies\": [{\"name\": \"Max 3 touches per contact in 14 days\", \"params\": {\"per_contact\": 3, \"window_days\": 14}, \"rule_type\": \"max_touches\"}, {\"name\": \"Respect do-not-contact list\", \"params\": {}, \"rule_type\": \"do_not_contact\"}, {\"name\": \"Partner-sourced accounts go through the partner\", \"params\": {\"credit\": [\"sourced\", \"resold\"]}, \"rule_type\": \"partner_route\"}, {\"name\": \"No agent-sent SMS\", \"params\": {\"channels\": [\"sms\"], \"sender_types\": [\"agent\"]}, \"rule_type\": \"blocked_channel\"}]}",
+     "is_error": false
+    },
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_01D44vGFz2WN9v5cCPF6xwVG",
+     "content": "[]",
+     "is_error": false
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "type": "thinking",
+     "thinking": "",
+     "signature": "CAQSkAkKEAgTGAI4AUIIdGhpbmtpbmcSDEFx2pJjkOsuXs1mjBoMQgNx3dQt8N6V8tnZIjBeRxJtQpXNqts+hmH/epPEps1Ju4Q/k+IVbV6ExYHmW5DNXHQL+/h0hPnC7RZJbCoqrQiiRXjl8TpiFzjgOhqTI0ywTzs0X6L1sZiYskCRCfdHWqs7bmHMdjZ5FhKGssCRFw41MvlUwztaavnq22mNS7oVfZzwMS0nterSqUWXGjnwiq+GIzMEiZqJRIya6qKL0y8WL2qmHOgWIu3yi0Bibcd4rCHm+s0AcctgAT6EJH14K5KgHRcV2pE5EPeYsKZDHFRpiKD38eDHRdcoC6Un0YcZQzYkvYtoSrCLJTzam17PCVDBIOlEm2O+/UXLf36QTvngQlmhG69XZ1VOGI4Ea9F8RDr1l3zzNOx7taHxP+1MQliy/oOXoJ5fPMzpjw28sQTXSFVBSnzlceLfC9ggmAwBnyBi6EJegLzf7/HgEA1JaouAJ2eARh01rZoNisd8Mlf9/4L7dLcIGeRT0Qk0EpU26JNfSSdPjaLzjpeiCCuz15fcbWfH3Ce5Vxe6N6edQJ+enMGHyC5/yvOR+56q/7zjQ3ww1/hHdBdbuqkQ3Cv2h5ak7LIH9eI0KaOuGzbIXXsWn26BXdFnxwc+MuWQhpw+4EF85dCUJPmXTqrJ4dGHRULBAskOxi8GEF8DyTWqe/B3vdHYoztZiD0YxmbPGzqd0Qbx6b0e+bFBK+BZsY2QJRwLCYQPvnyiTuQM63/jkgOJHqg5dWuIpRKs0e804MJt2P6084krwru53G4sX65qLINP6Y37bPHEFG0MqhB/2r/6BJo/yKroEyScsz/bFbZOMF16dO+cpWHa3QHynmggaE7rBUoFRUcxdOi6eXpJXpTh7Evv9ypTfb0HIBq3FQcFCWLUeLtq9N+04/Qqrge9H+3gbH3vqufZDOj8ahPKNViT8+ZV7nVm/A8TxxlNAqSCmwAcHEoi80cMh7ytxEkRpJeMcA0AiqdT+S5VqblIOJNgE9UOWVJdKQcvMFsan2CVLLweIoaodlVzVDq5D4MLe7YJwZ7Df5nvP1i8DEL/zLxsmDhM8IYS/nkkt0TKk7Kq5cBUxe4Eh6GjVA7eMdSUycx39b+741WzqE8nzMknXBSFUpKkIV23Ju90yZQwNZq6o1WeIWDDKbGOhk18peWJtEWrrC4svubOFFPIWkJvddODxXiXniaxz7FKNMI7XQ16AqZwtAHeu6sE85+3SHJc9uO/h9IORIuVtgiKTL58rK7UUf1r6Iv0vEVu9I43QE6V9TZim9JOuhaz8kil81MFGx8lHJEBaXVU8M/XkWuGxlYLGJ8CrNDYC8kPM3x9NKpUy9blJPOuEkXfsJ3nS/EmXGDXfMBREcIKwXQOTjVlo2d74TtsStfwgyFGBDd84djhdIjYoe2+dkaz2AQV0i4qpSotUgcoY3Jf+suAT238bTsHoKeA2ivb2b77H/KybqPpS3qxhyn/i2/LBXhfpjFcMY0yuUjZFV6ZjoIJw1bYQsJBHmIVkDoSOJ6OZhp+GAE="
+    },
+    {
+     "type": "tool_use",
+     "id": "toolu_0144qTzc3GrSBUeZ548sjPLt",
+     "name": "propose_decision",
+     "input": {
+      "action": "propose_strategy",
+      "subject_type": "company",
+      "subject_id": "1",
+      "evidence_ids": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6,
+       7
+      ],
+      "rationale": "Act now. Trial WAU went from 41 to 87 (#1). Compute credits are 2.3x, mostly scheduled pipeline jobs (#2), which is the scheduler pain Priya named (#3). Way in: Priya, who asked twice for onboarding help (#6) and said she can make the case to Jordan (#3). Jordan's objection is migration effort (#4), and he skipped the last demo (#6). Sender is Maya (rep), as she asked in her v1 edit; no new evidence goes against that. Risk: the deal closes 11-12, but a multi-year deal needs about 3 weeks of procurement review (#5). #7 is weak and is only used to shape a question."
+     },
+     "caller": {
+      "type": "direct"
+     }
+    }
+   ]
+  },
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_0144qTzc3GrSBUeZ548sjPLt",
+     "content": "2",
+     "is_error": false
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "type": "tool_use",
+     "id": "toolu_01LdppWUTDXNTUQhV4ptLmsD",
+     "name": "propose_strategy",
+     "input": {
+      "decision_id": 2,
+      "subject_type": "company",
+      "subject_id": "1",
+      "plan": {
+       "why_now": [
+        {
+         "claim": "Trial weekly active users rose from 41 to 87 over six weeks.",
+         "evidence": [
+          1
+         ]
+        },
+        {
+         "claim": "Trial compute credit use is 2.3x six weeks ago, mostly scheduled pipeline jobs, which is the workload Priya wants off the homegrown scheduler by Q2.",
+         "evidence": [
+          2,
+          3
+         ]
+        }
+       ],
+       "entry_points": [
+        {
+         "contact_id": 2,
+         "reason": "Priya Shah has the pain: she wants pipeline jobs off the homegrown scheduler by Q2. She said she can make the case to Jordan and has asked twice about onboarding help.",
+         "evidence": [
+          3,
+          6
+         ]
+        },
+        {
+         "contact_id": 1,
+         "reason": "Jordan Lee is the person Priya has to convince. His stated blocker is migration effort: his team can't take on another six-month project this year. He skipped the last demo and sent a delegate, so reach him through Priya, not cold.",
+         "evidence": [
+          3,
+          4,
+          6
+         ]
+        },
+        {
+         "contact_id": 3,
+         "reason": "Casey Ruiz said any multi-year deal goes through a procurement review of about three weeks. Engage early so the paperwork doesn't push the close date.",
+         "evidence": [
+          5
+         ]
+        }
+       ],
+       "sender": {
+        "type": "rep",
+        "reason": "Maya, the account owner, makes all contact. In her v1 review she wrote: 'Anything to Acme comes from me, not the agent.' No new evidence goes against that, so this plan follows her edit."
+       },
+       "channel_and_sequence": [
+        {
+         "step": 1,
+         "channel": "email",
+         "purpose": "Maya to Priya: offer concrete onboarding help for moving scheduled pipeline jobs, and ask her to set up a short session with Jordan."
+        },
+        {
+         "step": 2,
+         "channel": "meeting",
+         "purpose": "Maya and Priya with Jordan (Priya brings him in): a migration plan sized to fit his team's capacity this year, answering his six-month worry."
+        },
+        {
+         "step": 3,
+         "channel": "email",
+         "purpose": "Maya to Casey: confirm the term length and start the procurement review now, given the roughly three-week timeline."
+        }
+       ],
+       "content": [
+        {
+         "step": 1,
+         "carries": "We see scheduled pipeline jobs already driving your trial usage (2.3x credits, WAU 41 to 87). Here is an onboarding plan to move the rest off the homegrown scheduler before Q2. Open question: does any of this help the data platform team you're growing? Ask it as a question only; it comes from a job-posting page, which is weak evidence.",
+         "evidence": [
+          1,
+          2,
+          3,
+          6,
+          7
+         ]
+        },
+        {
+         "step": 2,
+         "carries": "A phased migration with onboarding support and an estimate of Jordan's team's effort, aimed directly at 'cannot take on another six-month project this year.'",
+         "evidence": [
+          4,
+          3
+         ]
+        },
+        {
+         "step": 3,
+         "carries": "Confirm whether the deal is multi-year and agree the procurement review steps, owners and dates.",
+         "evidence": [
+          5
+         ]
+        }
+       ],
+       "risks": [
+        "The close date is 2026-11-12, but a multi-year deal needs a procurement review of about three weeks. If the term is multi-year, the close date is probably unrealistic. The rep should confirm the term and re-date the deal.",
+        "Jordan's engagement is falling (he skipped the last demo). If the migration worry isn't answered, Priya may not be able to carry the case.",
+        "MEDDPICC gaps: no evidence yet of who the economic buyer is or what the decision criteria are. Titles alone don't establish authority.",
+        "Priya is a potential champion only partly shown: she has said she can make the case but hasn't acted on it yet."
+       ],
+       "what_would_change_it": "Write a new version if Priya brings in Jordan or another approver (champion shown by action). Also if Jordan states his view on the spend, Casey confirms the term and procurement dates, or trial usage drops."
+      }
+     },
+     "caller": {
+      "type": "direct"
+     }
+    }
+   ]
+  },
+  {
+   "role": "user",
+   "content": [
+    {
+     "type": "tool_result",
+     "tool_use_id": "toolu_01LdppWUTDXNTUQhV4ptLmsD",
+     "content": "2",
+     "is_error": false
+    }
+   ]
+  },
+  {
+   "role": "assistant",
+   "content": [
+    {
+     "type": "thinking",
+     "thinking": "",
+     "signature": "CAQSuAYKEAgTGAI4AUIIdGhpbmtpbmcSDHBydSWfUyUllNmIiBoMpyVFrVP6XLvh3FksIjAWN1rRE5gHEbUhkrwRb06ok9L2ktx6eOLSqhoGCMUnce0EOW98cYpoDTONMAbS8Xgq1QUT5jQOIaAOWkVBVPoViqLocUbRNbcY+tc+VPFhJMNvKJ/3RLqj3TjBG3uoevzZirVS43YCCMR3NwN2CQwI07zvTSblmqEl4D/Je5f/z44XHUUW800xWuW8EMR5mNyQMSBkq2svD49cwOkt/HJW7F+Y65LVjVv73yqoM72n8bCqPCKP53S/vuACt37/kESBOB9QHErPAqsTXhQeLrLZfN/cXbLPSWCT78Y2BAOzN/RgfL50dWh14QCyI+g8mConDxCXbza2iyF5BjTdw4bIu8DtrsbQ5GCg6lKnYPK4DKq/RgCtLCU6/TeTg8LAkBglCtwgCZWqkVq2kKm/+5s1e+x/L5dAOW8C9PqkABOWIi/sNvtoJtEexzJG3hM7H1WNFQ+XuSacWHitlSdWC/WnU7KZJb/uAeaXgTkzxVFRg/AW873AwTpQukbgTFo0X3fr72qkoIz0fxzP53vv/m6dWcUfxH2rIrHupI1HKwcVN/yl171EPQJQaGrPy/ayrr9We2WmTsEZpYSoDTE9QtasHz/e6aoPf4ZezSE9qm89C5QmKNqj6RFq17NyR2t0fjZ0kEpeL1Ph9lH5yrii6gIEHHcHgUezyT9k0cL1OipoTurLnQiXxsUtICO3Azbn9jtbPjuwHYmgL5BUe0QKremmTNHvprQ6Kfv71Se5bNUnA6gRaKerPJbFvFVN6wTkM6p7XGCL4nxYLno+hcTMt4Xdj/L3KhZEW7/CUtszds/5FZ8V8rLorktcLq5nY7F0svbaonGZ/TXFz9FWWs9ejn4E7VnG4tS6ka9W8n5FI8/zsSS0nRSdH0VCLaJu0/rI87voVVZmXDEO7sWnuTlSfUVYZF+F/2dXOZrx4XOinkgAJ1Qi6d82F43vhGA+fNcCu1uxWIRnVBaafl1FN9/vFlfCwLrg9lUXYLVbGO3mfRkLQ/Tq+kFLNJGk3BE7eXhpk1jpPicak07uNxgB"
+    },
+    {
+     "type": "text",
+     "text": "I've written a new approach plan for Acme Orchards (strategy v2, decision #2). It's waiting for Maya's review.\n\n**Why reach out now:** use of the trial roughly doubled over the last six weeks. Weekly active users went from 41 to 87 (#1), and compute credit use is 2.3 times higher, mostly from scheduled pipeline jobs (#2). That's the work Priya Shah wants off their homegrown scheduler by Q2 (#3).\n\n**Who to contact:**\n- **Priya:** she has the pain, has asked twice about onboarding help, and said she can make the case to Jordan (#3, #6).\n- **Jordan Lee:** his main worry is migration effort (#4), and he skipped the last demo (#6), so the plan brings him in through Priya rather than contacting him cold.\n- **Casey Ruiz:** to get the procurement review started early (#5).\n\n**Sender:** Maya, not an agent. Her review of the last plan said anything to Acme comes from her, and nothing new goes against that, so the plan follows her edit.\n\n**Sequence:**\n1. Maya emails Priya offering onboarding help and asks her to set up a session with Jordan.\n2. A meeting with Jordan, where Maya walks him through a phased migration sized to what his team can take on this year.\n3. Maya emails Casey to confirm the contract length and start procurement.\n\nThe careers-page post about data platform hiring (#7) is weak evidence, so the plan only uses it as a question to ask.\n\n**Policies:** none of the three contacts is on the do-not-contact list or has been touched in the last 14 days. No partner has credit on the account, and the account isn't held out of any experiment.\n\n**Left for a human:**\n- **Close date:** the deal is set to close on 2026-11-12, but Casey says any multi-year deal takes about three weeks of procurement review (#5). If the deal is multi-year, that date probably won't hold. Maya should confirm the contract length and change the close date. I flagged this in the plan's risks rather than filing a separate risk decision.\n- **Qualification gaps:** there's no evidence yet of who approves the spend or what they'll compare us on. Priya is only a possible champion until she acts, for example by bringing Jordan in."
+    }
+   ]
+  }
+ ]
+}
