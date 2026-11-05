@@ -1,6 +1,17 @@
 # Deploying on Supabase
 
-Not yet run on a hosted project (see STATUS.md). These are the intended steps. Use a Supabase branch first, run the attack suite against it, then promote.
+Tested on a hosted Supabase project on 2026-11-05 (see `docs/supabase-hosted-check.md`). Use a Supabase branch or a spare project first, run the tests against it, then promote.
+
+## Quick start on a fresh project
+
+```bash
+pip install -r requirements.txt
+export SUPABASE_DB_URL="postgresql://postgres.<ref>:<db password>@aws-0-<region>.pooler.supabase.com:5432/postgres"   # Connect > Direct > Session pooler
+python scripts/install_hosted.py --dsn "$SUPABASE_DB_URL" --seed --demo     # Atomic + migrations + Northwind demo data
+EA_HOSTED_DSN="$SUPABASE_DB_URL" pytest tests                                  # runs in rolled-back transactions
+```
+
+The connection string needs the database password (Project Settings > Database), not your Supabase account password. Percent-encode any symbols in it.
 
 ## Greenfield (Atomic CRM fork)
 

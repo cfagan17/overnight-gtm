@@ -1,8 +1,8 @@
 # rls-audit report
 
-Target: `/ea_report_stock?host=/tmp&port=54329`
+Target: `localhost:5432/ea_report_stock`
 
-**33 high, 28 medium, 0 low.**
+**33 high, 29 medium, 0 low.**
 
 | Severity | Check | Object | What it means | Fix |
 | --- | --- | --- | --- | --- |
@@ -49,6 +49,7 @@ Target: `/ea_report_stock?host=/tmp&port=54329`
 | MEDIUM | anon_table_grants | `public.sales` | anon holds DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE. Only RLS stands between signed-out callers and the data. | revoke all on ... from anon; grant back only what a signed-out page needs. |
 | MEDIUM | anon_table_grants | `public.tags` | anon holds DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE. Only RLS stands between signed-out callers and the data. | revoke all on ... from anon; grant back only what a signed-out page needs. |
 | MEDIUM | anon_table_grants | `public.tasks` | anon holds DELETE,INSERT,REFERENCES,SELECT,TRIGGER,TRUNCATE,UPDATE. Only RLS stands between signed-out callers and the data. | revoke all on ... from anon; grant back only what a signed-out page needs. |
+| MEDIUM | definer_callable_by_anon | `get_user_id_by_email(text)` | Signed-out callers can run this function with its owner's rights. | revoke execute on function ... from anon, public; unless the login flow needs it. |
 | MEDIUM | definer_callable_by_anon | `is_admin()` | Signed-out callers can run this function with its owner's rights. | revoke execute on function ... from anon, public; unless the login flow needs it. |
 | MEDIUM | probe_reads_others_rows | `public.companies` | West AE can read 1 rows owned by someone else (by sales_id). | Confirm this visibility is intended for this role. |
 | MEDIUM | probe_reads_others_rows | `public.companies` | Agent can read 2 rows owned by someone else (by sales_id). | Confirm this visibility is intended for this role. |

@@ -11,7 +11,8 @@ data. This was not scripted. The model chose every tool call.
 - Loop: `agents/loops/account_program/` at prompt v2, with the evidence, account-plan and
   MEDDPICC skills.
 - Agent: the account-program agent at autonomy level 1 (suggest). Its grant covers West Enterprise only.
-- Ran on Postgres 16 with the test shim. 34,292 input and 3,110 output tokens, about 30 seconds.
+- Ran on Postgres 16 with the test shim: 34,292 input and 3,110 output tokens, about 30 seconds.
+  A second run on a hosted Supabase project reached the same conclusions (see `docs/supabase-hosted-check.md`).
 
 ```bash
 python agents/runtime/runner.py --loop account_program --input '{"company_id": 1}' \

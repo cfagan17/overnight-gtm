@@ -24,13 +24,15 @@ Built on [Atomic CRM](https://github.com/marmelab/atomic-crm) (MIT, Supabase), w
 | --- | --- | --- |
 | Attacks allowed (a rep reading, editing or deleting another territory's records, a read-only user editing, an agent writing directly) | 14 of 15 | 0 of 15 |
 | `tools/rls-audit` findings, high | 33 | 0 |
-| `tools/rls-audit` findings, medium (after review) | 28 | 0 |
+| `tools/rls-audit` findings, medium (after review) | 29 | 0 |
 
 Stock Atomic is a good template that is honest about its scope: a small team where everyone may see and change everything. The report shows what changes when that stops being true, and when AI agents connect as users.
 
+The whole stack also installs on a hosted Supabase project and the suite passes against it. The first hosted run found a real gap the local tests had missed, now fixed ([write-up](docs/supabase-hosted-check.md)).
+
 Before publishing, an independent adversarial review tried to break the hardened schema and found real holes, including two ways an agent could change records outside its scope. All confirmed findings are fixed and each has a regression test. The [review write-up](docs/review-2026-11-01.md) lists what was found, what changed, and what is still open.
 
-The test suite (81 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
+The test suite (82 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
 
 ## Three ways to use it
 

@@ -36,3 +36,25 @@ grant execute on all functions in schema public to service_role;
 -- Functions added to ea_private later start with no execute for signed-in users, so the
 -- allowlist above has to be extended on purpose.
 alter default privileges in schema ea_private revoke execute on functions from public;
+
+-- Atomic means get_user_id_by_email for the service role only (vendor 06_grants.sql), but on a
+-- real Supabase project the default grants also let anon and signed-in users call it, which
+-- turns any login into an email-to-user-id lookup. Keep it service-role only.
+revoke execute on function public.get_user_id_by_email(text) from public, anon, authenticated;
+
+-- Trigger functions are never meant to be called through the API. Supabase's default grants
+-- expose them at /rest/v1/rpc/..., and the Supabase security advisor flags it. Triggers keep
+-- firing: Postgres checks EXECUTE on a trigger function only when the trigger is created.
+do $$
+declare f record;
+begin
+  for f in select p.oid::regprocedure as sig from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+           where n.nspname = 'public' and p.prorettype = 'trigger'::regtype loop
+    execute format('revoke execute on function %s from public, anon, authenticated', f.sig);
+  end loop;
+end $$;
+
+-- Restore Supabase's default grants (switched off in 0001) for tables you add later.
+-- Every new table needs row-level security. tools/rls-audit flags any that lack it.
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;

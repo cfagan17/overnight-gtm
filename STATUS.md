@@ -1,6 +1,6 @@
 # Status: what is tested and what is design only
 
-Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with the Supabase shim in `db/test-shim/`. Nothing here has run on a hosted Supabase project, a Salesforce org or a HubSpot portal yet.
+Updated 2026-11-05. "Tested" means covered by `make test` on Postgres 16 with the Supabase shim in `db/test-shim/`. The suite has also run against a hosted Supabase project (see `docs/supabase-hosted-check.md`). Nothing here has run against a Salesforce org or a HubSpot portal yet.
 
 ## Tested
 
@@ -25,6 +25,7 @@ Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with th
 | Replay evals | Scorers reward the right behavior and penalize stating weak evidence as fact, wrong sender and uncited evidence | `tests/test_replay.py` |
 | Sidecars (logic only) | Ingest fills the visibility mirror; a level 2 Salesforce change waits for the owner, is refused for a non-owner, and is written back with its decision id; HubSpot request shapes; only the worker can claim changes | `tests/test_sidecars.py` (fake HTTP sessions) |
 | Ask-your-data queries | Each starter query in `examples/queries/` runs as an owner on the seeded database | `tests/test_queries.py` |
+| Hosted Supabase | Installs cleanly on a real project (Postgres 17), and the suite passes against it: 75 passed, 7 skipped. The first run found a default-grant gap the shim did not model, now fixed and modeled | `docs/supabase-hosted-check.md` |
 | Fit assessment | Recommendations for small teams, Salesforce companies and greenfield builds; reading Salesforce describe output and a Postgres schema | `tests/test_fit_assessment.py` |
 
 ## Design only, not yet tested
@@ -35,7 +36,6 @@ Updated 2026-11-01. "Tested" means covered by `make test` on Postgres 16 with th
 | Eval sets | The starter sets are synthetic and small (5 and 6 cases) | Replace with about 200 human-verified past cases per loop |
 | Promotion thresholds (80%, 95%) | Starting guesses | The first 100 real reviews per loop |
 | Salesforce and HubSpot against real systems | No test org or portal here | A Salesforce scratch org and a HubSpot developer portal |
-| Hosted Supabase | Tested on plain Postgres with a shim | `supabase db push` on a branch, then the attack suite against it |
 | Row-level security at scale | Seed has 24 accounts | 1M deals and a 5-level manager chain; measure query time |
 | Partner intelligence on public data | The snapshot is partial (37 of 119 listings rendered) and the loop needs a live model | Re-capture the listings, run `examples/partner-intelligence-public/run.py` |
 | Atomic's UI on the hardened schema | Tests cover the database, not the React app | Run the Atomic app against the hardened database and click through as each role |

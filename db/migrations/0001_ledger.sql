@@ -6,6 +6,12 @@
 --
 -- Requires: Atomic CRM schema (vendor/atomic-crm/schemas) already applied.
 
+-- Supabase grants every new table in public to anon and authenticated by default. Tables
+-- created by these migrations get only the grants they state explicitly, so switch that
+-- default off while they run. 0008_final_grants.sql switches it back on.
+alter default privileges in schema public revoke all on tables from anon, authenticated;
+alter default privileges in schema public revoke all on sequences from anon, authenticated;
+
 create schema if not exists ea_private;
 revoke all on schema ea_private from public;
 grant usage on schema ea_private to authenticated, service_role;

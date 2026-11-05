@@ -7,7 +7,7 @@ import json
 import psycopg
 import pytest
 
-from helpers import ANA, FIN, OWNER, agent_uid, attempt, scalar
+from helpers import ANA, FIN, OWNER, acting_as, agent_uid, attempt, scalar
 
 
 def act(c, uid):
@@ -214,3 +214,10 @@ def test_second_pass_sources_can_refuse_agent_writes(tx):
     run = scalar(tx, "select public.start_run('m','v1')")
     e = scalar(tx, "select public.record_evidence(%s,'deal',%s,'call_quote','A quote','gong://call/1',now())", (run, str(deal)))
     assert scalar(tx, "select strength from public.evidence where id = %s", (e,)) == "weak"
+
+
+def test_signed_in_users_cannot_look_up_user_ids_by_email(conn):
+    # Found when the suite first ran on a real Supabase project, where default grants made
+    # Atomic's service-role-only helper callable by anyone signed in.
+    with acting_as(conn, ANA) as c:
+        assert attempt(c, "select * from public.get_user_id_by_email('riley.ops@northwind.example')")[0] == "denied"

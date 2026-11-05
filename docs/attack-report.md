@@ -1,6 +1,6 @@
 # Attack report
 
-Generated 2026-11-01 by `scripts/attack_report.py`. Stock schema: Atomic CRM at commit `489537c369`. Hardened: the same schema plus `db/migrations`.
+Generated 2026-11-04 by `scripts/attack_report.py`. Stock schema: Atomic CRM at commit `489537c369`. Hardened: the same schema plus `db/migrations`.
 
 Each row is one attempt by one signed-in user (or a signed-out visitor) against a record they should not reach. **Blocked** means the database refused it or it touched no target rows. Run on Postgres 16 with `db/test-shim/supabase_shim.sql` standing in for Supabase's auth layer.
 

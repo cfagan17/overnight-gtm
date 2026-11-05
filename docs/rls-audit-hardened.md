@@ -1,6 +1,6 @@
 # rls-audit report
 
-Target: `/ea_report_hardened?host=/tmp&port=54329`
+Target: `localhost:5432/ea_report_hardened`
 
 **0 high, 0 medium, 30 low.**
 
