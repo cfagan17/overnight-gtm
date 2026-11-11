@@ -2,6 +2,8 @@
 
 **The open-source AI operating layer for go to market.** Frontier models work every loop of your GTM system every night, writing down why they decided what they did, and earning the right to do more.
 
+**Live demo:** [overnight-gtm.vercel.app](https://overnight-gtm.vercel.app). Pick one of six people at a fictional company and see the same system through their access. No account or password needed.
+
 Most companies use AI as a feature: draft the email, summarize the call, update the CRM. Overnight is for putting AI at the center of how go to market makes decisions, safely. Every Rev Ops function becomes a loop that reads all of the data on a schedule and proposes what to do next. People review the work, and each loop climbs a ladder of **earned autonomy** only as fast as its record allows.
 
 Most AI sales tools bolt a feature onto a CRM built for people typing into forms. This repo starts from a different question. If a capable model sits at the center of go-to-market, reading every account, conversation and partner signal and doing as much of the work as it reliably can, what does the system underneath need to look like?
@@ -32,7 +34,7 @@ The whole stack also installs on a hosted Supabase project and the suite passes 
 
 Before publishing, an independent adversarial review tried to break the hardened schema and found real holes, including two ways an agent could change records outside its scope. All confirmed findings are fixed and each has a regression test. The [review write-up](docs/review-2026-11-01.md) lists what was found, what changed, and what is still open.
 
-The test suite (97 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
+The test suite (101 tests) also covers the agent contract: agents cannot act outside their scope, cite evidence they cannot see, state weak evidence as fact in a plan, change a field without a decision citing strong evidence, touch a do-not-contact person or a partner-owned account, raise their own autonomy, or act on accounts held out of an experiment. See [STATUS.md](STATUS.md) for exactly what is tested and what is design only.
 
 ## Three ways to use it
 
@@ -50,16 +52,19 @@ Needs Postgres 16 and Python 3.11+. No Supabase account needed for the tests: a 
 
 ```bash
 pip install -r requirements.txt
-export EA_TEST_DSN="postgresql://postgres@localhost:5432/postgres"   # a Postgres you can create databases on
+export EA_TEST_DSN="postgresql://postgres@localhost:5432/postgres"   # a Postgres you can create databases on (EA is earned autonomy)
 make test           # builds fresh databases and runs all tests
 make report         # regenerates docs/attack-report.md and the rls-audit reports
-make demo           # a seeded demo database (fictional company "Northwind Data")
+make demo           # a seeded demo database named ea_dev (fictional company "Northwind Data")
 ```
 
-Run a loop with a live model (any Anthropic model id):
+`EA_TEST_DSN` keeps its `EA_` prefix: EA stands for earned autonomy, the trust ladder each loop climbs.
+
+Run a loop with a live model (any Anthropic model id). `DEMO_DSN` is the database `make demo` builds, `ea_dev`, on the same server as `EA_TEST_DSN`:
 
 ```bash
 export ANTHROPIC_API_KEY=...
+export DEMO_DSN="postgresql://postgres@localhost:5432/ea_dev"
 python agents/runtime/runner.py --loop account_program --input '{"company_id": 1}' \
   --dsn "$DEMO_DSN" --agent-uid 00000000-0000-0000-0000-000000000102 --model <model-id>
 ```
@@ -82,7 +87,7 @@ The **console** (`console/`) is the window onto all of it: the review inbox, eve
 cd console && npm install && npm run dev        # points at the public demo database by default
 ```
 
-The public demo is a fictional company, Northwind Data, with two months of generated history and one real Claude run. Sign in as any of six people and see the same system through their access.
+The public demo at [overnight-gtm.vercel.app](https://overnight-gtm.vercel.app) is a fictional company, Northwind Data, with two months of generated history and one real Claude run. Pick one of six people and see the same system through their access. No account or password needed. It is wiped and rebuilt every night, so the history always ends last night.
 
 ## Build it: Supabase plus Claude
 

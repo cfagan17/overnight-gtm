@@ -80,4 +80,15 @@ Only the service role can call `slack_review_queue` and `slack_review_decision`,
 python scripts/install_hosted.py --dsn "$SUPABASE_DB_URL" --reset --yes-wipe-public-schema --seed --demo --demo-logins
 ```
 
-This wipes the project and loads Northwind Data with two months of generated history (fixed seed) and the real Claude run in `examples/live-run/`. Every demo person signs in with the password `overnight-demo`. Run it again to reset the demo, for example nightly from cron. Run the test suite against the hosted project only after an install without `--demo`: the tests expect the plain seed.
+This wipes the project and loads Northwind Data with two months of generated history (fixed seed) and the real Claude run in `examples/live-run/`. Every demo person signs in with the password `overnight-demo`. Run the test suite against the hosted project only after an install without `--demo`: the tests expect the plain seed.
+
+### The nightly reset
+
+The history is generated relative to the time of the install, and the console's Today page counts the last 36 hours as "overnight". A demo that is not reinstalled shows zero runs after a day and a half. So `.github/workflows/demo-reset.yml` runs the command above every night at 12:17 UTC (04:17 Pacific in winter, 05:17 in summer), and can be started by hand from the Actions tab (Run workflow).
+
+- It wipes the demo project every time. Anything a visitor did the day before is gone.
+- It reads the connection string from the repository secret `SUPABASE_DB_URL`, and stops before changing anything unless that string names the demo project's ref. It runs only in this repository and only from `main`.
+- After the install it checks that all twelve loops have runs in the last 36 hours, and fails if not.
+- Each install also moves the Acme Orchards deal to close eight days out and shifts the dates in the saved Claude run to match (see `examples/live-run/README.md`).
+
+Not tested here: the workflow itself has not run against the hosted project from this branch. The install command it runs is the one above. GitHub can start scheduled runs late, and turns schedules off in a repository with no activity for 60 days. For the first several hours after each reset the run count includes the night before as well, because both nights fall inside the 36 hours.

@@ -14,7 +14,12 @@ data. This was not scripted. The model chose every tool call.
 - Ran on Postgres 16 with the test shim: 34,292 input and 3,110 output tokens, about 30 seconds.
   A second run on a hosted Supabase project reached the same conclusions (see `docs/supabase-hosted-check.md`).
 
+`DEMO_DSN` is the demo database: the `ea_dev` database that `make demo` builds, with
+`examples/demo/acme_signals.sql` loaded on top. On a local Postgres that is:
+
 ```bash
+export DEMO_DSN="postgresql://postgres@localhost:5432/ea_dev"
+psql "$DEMO_DSN" -f examples/demo/acme_signals.sql
 python agents/runtime/runner.py --loop account_program --input '{"company_id": 1}' \
   --dsn "$DEMO_DSN" --agent-uid 00000000-0000-0000-0000-000000000102 --model claude-opus-5-5
 ```
@@ -44,6 +49,15 @@ Seven tool calls, all logged to `run_events`:
 
 `output.json` has the decision and the full v2 plan. `transcript.json` has the system prompt and
 every model turn, tool call and tool result.
+
+## Dates in the demo
+
+The run was made on 2026-11-05, when the Acme deal closed on 2026-11-12. `output.json` and
+`transcript.json` are kept exactly as the run produced them. A demo install
+(`scripts/demo_history.py`) loads the plan from `output.json` and shifts its dates: the Acme deal
+is set to close eight days after the install, and the two places the plan names the close date
+follow it. `examples/demo/acme_signals.sql` dates its signals, and the dates inside their links,
+relative to when it is loaded. Nothing else Claude wrote is changed, and a test checks that.
 
 One run shows the loop can do the work. It does not show how often it does it well. That is
 what the review record and replay evals are for (see STATUS.md).
