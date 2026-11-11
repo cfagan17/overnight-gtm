@@ -6,7 +6,7 @@ Updated 2026-11-05. "Tested" means covered by `make test` on Postgres 16 with th
 
 | Area | What the tests show | Where |
 | --- | --- | --- |
-| Compatibility with Atomic CRM | Atomic's real schema (pinned commit) loads, then all nine migrations apply on top | `scripts/build_db.py` |
+| Compatibility with Atomic CRM | Atomic's real schema (pinned commit) loads, then all ten migrations apply on top | `scripts/build_db.py` |
 | Record visibility | Owner and read-only see everything; managers see their chain; reps see their own records and their territory; agents see only their grant scope | `tests/test_control_plane.py` |
 | Write boundaries | Reps edit their own records and archive rather than delete; managers edit and delete within their chain only; records cannot be added to or moved onto accounts the caller cannot edit; only owners change territory assignments | `tests/test_control_plane.py`, `tests/test_review_regressions.py` |
 | Field masking | Discount and partner margin are not selectable by API roles, and never enter the audit log; only owners, managers and the partner manager read them through functions | `tests/test_control_plane.py`, `tests/test_review_regressions.py` |

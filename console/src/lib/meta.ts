@@ -39,10 +39,10 @@ export const STAGES = [
 ];
 
 export const PERSONAS = [
-  { email: 'ana.rep@northwind.example', name: 'Maya Chen', role: 'Account executive', see: 'Her review inbox and her accounts in West Enterprise.', color: '#2dd4bf' },
-  { email: 'riley.ops@northwind.example', name: 'Sam Rivera', role: 'Rev Ops, owner', see: 'Everything. Owns the loops, prompts, promotions and policies.', color: '#fb923c' },
-  { email: 'vic.vp@northwind.example', name: 'Vic Moreno', role: 'VP Sales', see: 'Both regions, the forecast, and how the loops are doing.', color: '#60a5fa' },
-  { email: 'cy.rep@northwind.example', name: 'Cy Nakamura', role: 'Account executive, East', see: 'Only the East. Row-level security hides the West.', color: '#a78bfa' },
-  { email: 'pat.partners@northwind.example', name: 'Pat Quinn', role: 'Partner manager', see: 'Partner plans and partner-sourced deals.', color: '#f472b6' },
-  { email: 'fin.readonly@northwind.example', name: 'Morgan Lee', role: 'Finance, read-only', see: 'Everything, read-only. Comp and territory sign-off stays with owners.', color: '#34d399' },
+  { key: 'maya', email: 'ana.rep@northwind.example', name: 'Maya Chen', role: 'Account executive', see: 'Her review inbox and her accounts in West Enterprise.', color: '#2dd4bf' },
+  { key: 'sam', email: 'riley.ops@northwind.example', name: 'Sam Rivera', role: 'Rev Ops, owner', see: 'Everything. Owns the loops, prompts, promotions and policies.', color: '#fb923c' },
+  { key: 'vic', email: 'vic.vp@northwind.example', name: 'Vic Moreno', role: 'VP Sales', see: 'Both regions, the forecast, and how the loops are doing.', color: '#60a5fa' },
+  { key: 'cy', email: 'cy.rep@northwind.example', name: 'Cy Nakamura', role: 'Account executive, East', see: 'Only the East. Row-level security hides the West.', color: '#a78bfa' },
+  { key: 'pat', email: 'pat.partners@northwind.example', name: 'Pat Quinn', role: 'Partner manager', see: 'Partner plans and partner-sourced deals.', color: '#f472b6' },
+  { key: 'morgan', email: 'fin.readonly@northwind.example', name: 'Morgan Lee', role: 'Finance, read-only', see: 'Everything, read-only. Comp and territory sign-off stays with owners.', color: '#34d399' },
 ];
