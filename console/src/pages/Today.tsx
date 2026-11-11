@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Moon } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, DEMO } from '../lib/supabase';
+import StartHere from '../components/StartHere';
 import { q, useLoad } from '../lib/hooks';
 import { useSession } from '../lib/session';
 import { ago, pct } from '../lib/format';
@@ -47,6 +48,8 @@ export default function Today() {
           </div>
         </div>
       </div>
+
+      {DEMO && <StartHere queue={data.queue} />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Waiting on you" value={data.queue.length} color="#fbbf24" sub="decisions to review" />

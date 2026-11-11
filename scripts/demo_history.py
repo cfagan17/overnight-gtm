@@ -20,6 +20,7 @@ import datetime as dt
 import json
 import pathlib
 import random
+import re
 
 import psycopg
 from psycopg.types.json import Jsonb
@@ -29,6 +30,12 @@ NOW = dt.datetime.now(dt.timezone.utc).replace(microsecond=0)
 DAY = dt.timedelta(days=1)
 OLD_MODEL, NEW_MODEL, UPGRADE_DAYS_AGO = "claude-opus-5", "claude-opus-5-5", 21
 DEMO_PASSWORD = "overnight-demo"
+# The saved Claude run in examples/live-run was made when the Acme deal closed on this date.
+# A demo install moves the deal to eight days out and shifts the dates in the saved plan to match.
+LIVE_RUN_CLOSE = dt.date(2026, 11, 12)
+CLOSE_IN_DAYS = 8
+# Last night, each of these loops does one piece of work for every rep, so nobody's morning is empty.
+EVERY_REP_LOOPS = ("deal_inspection", "conversation_capture", "outreach")
 
 PEOPLE = {  # email -> display name
     "riley.ops@northwind.example": ("Sam", "Rivera"),
@@ -78,8 +85,22 @@ NOTES = {
 
 
 def ago(days: float, hour: int = 2) -> dt.datetime:
-    t = (NOW - dt.timedelta(days=days)).replace(hour=hour, minute=R.randint(0, 59), second=R.randint(0, 59))
-    return t if t < NOW - dt.timedelta(minutes=30) else NOW - dt.timedelta(hours=R.uniform(1, 5))
+    # Always draw the same three numbers, so the data does not depend on the time of day it is built.
+    minute, second, back = R.randint(0, 59), R.randint(0, 59), R.uniform(1, 5)
+    t = (NOW - dt.timedelta(days=days)).replace(hour=hour, minute=minute, second=second)
+    return t if t < NOW - dt.timedelta(minutes=30) else NOW - dt.timedelta(hours=back)
+
+
+def shift_dates(obj, delta: dt.timedelta, close: dt.date):
+    """Move every date in the saved run's text by delta. Nothing else in the text changes."""
+    if isinstance(obj, dict):
+        return {k: shift_dates(v, delta, close) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [shift_dates(v, delta, close) for v in obj]
+    if isinstance(obj, str):
+        obj = re.sub(r"(?<!\d)20\d\d-\d\d-\d\d(?!\d)", lambda m: (dt.date.fromisoformat(m.group()) + delta).isoformat(), obj)
+        return re.sub(r"(?<![\d-])%s(?![\d-])" % LIVE_RUN_CLOSE.strftime("%m-%d"), close.strftime("%m-%d"), obj)
+    return obj
 
 
 def pick_outcome(mix):
@@ -162,6 +183,10 @@ def _build(c: psycopg.Connection) -> None:
     agents = {loop: (did, uid) for did, loop, uid in q(
         "select d.id, d.\"loop\", p.user_id from public.agent_definitions d join public.principals p on p.agent_definition_id = d.id")}
     companies = q("select c.id, c.name, c.sales_id, c.territory_id from public.companies c order by c.id")
+    # The Acme deal always closes about eight days out, as it did when Claude wrote the saved plan.
+    acme = one("select id from public.companies where name = 'Acme Orchards'")
+    acme_close = NOW.date() + DAY * CLOSE_IN_DAYS
+    c.execute("update public.deals set expected_closing_date = %s where company_id = %s", (acme_close, acme))
     contacts = {}
     for ct_id, comp_id, name, title in q("select id, company_id, first_name || ' ' || last_name, title from public.contacts"):
         contacts.setdefault(comp_id, []).append((ct_id, name, title))
@@ -169,6 +194,11 @@ def _build(c: psycopg.Connection) -> None:
         "select id, company_id, name, stage, amount from public.deals")}
     partners = q("select id, name from public.partners")
     west_ent = [x for x in companies if x[3] == 2]
+    by_rep = {}   # rep -> their accounts that have a deal and a contact
+    for x in companies:
+        if x[0] in deals and contacts.get(x[0]):
+            by_rep.setdefault(x[2], []).append(x)
+    rep_ids = sorted(by_rep)
 
     # Prompts in the database, plus a proposed edit from Sam waiting for approval.
     import sys
@@ -196,9 +226,11 @@ def _build(c: psycopg.Connection) -> None:
         c.execute("insert into public.autonomy_changes (agent_definition_id, from_level, to_level, reason, checks, decided_by, decided_at) "
                   "values (%s,%s,%s,%s,%s,%s,%s)", (agents[loop][0], frm, to, why, ck, owner_uid, ago(days, 15)))
 
-    def evidence(subject_type, subject_id, kind, claim, uri, when, by):
-        return one("insert into public.evidence (subject_type, subject_id, kind, claim, source_uri, observed_at, strength, recorded_by) "
-                   "values (%s,%s,%s,%s,%s,%s,'weak',%s) returning id", subject_type, str(subject_id), kind, claim, uri, when, by)
+    def evidence(subject_type, subject_id, kind, claim, uri, when, by, recorded=None):
+        # created_at is when the run wrote the row down, not when this script ran. The console counts
+        # "new evidence" by created_at, so only last night's rows count as new.
+        return one("insert into public.evidence (subject_type, subject_id, kind, claim, source_uri, observed_at, strength, recorded_by, created_at) "
+                   "values (%s,%s,%s,%s,%s,%s,'weak',%s,%s) returning id", subject_type, str(subject_id), kind, claim, uri, when, by, recorded or when)
 
     def run(loop, when, model, prompt_version, steps):
         did, auid = agents[loop]
@@ -238,7 +270,7 @@ def _build(c: psycopg.Connection) -> None:
 
     # The real run from examples/live-run: Claude's actual plan for Acme Orchards, waiting for Maya.
     live = json.loads((pathlib.Path(__file__).resolve().parents[1] / "examples/live-run/output.json").read_text())
-    acme = one("select id from public.companies where name = 'Acme Orchards'")
+    live = shift_dates(live, acme_close - LIVE_RUN_CLOSE, acme_close)
     acme_ev = [r[0] for r in q("select e.id from public.evidence e where (e.subject_type = 'company' and e.subject_id = %s) "
                                 "or (e.subject_type = 'contact' and e.subject_id in (select id::text from public.contacts where company_id = %s)) order by e.id", str(acme), acme)]
     did, auid = agents["account_program"]
@@ -279,6 +311,8 @@ def _build(c: psycopg.Connection) -> None:
             when = ago(day, R.randint(1, 4))
             pv = "db:v1" if day <= 20 else "v1"
             n = R.randint(lo, hi) if not fresh else max(1, hi)
+            if fresh and loop in EVERY_REP_LOOPS:
+                n = max(n, len(rep_ids))
             if loop == "forecast":
                 rid, auid, lvl = run(loop, when, model, pv, [("search_evidence", {"q": "pipeline"}), ("record_evidence", {})])
                 for terr, base in [(2, 1.42), (3, 0.61), (4, 1.18), (5, 0.44)]:
@@ -287,7 +321,7 @@ def _build(c: psycopg.Connection) -> None:
                              f"run://{rid}", when, auid)
                 continue
             rid, auid, lvl = run(loop, when, model, pv, [("get_account_context", {}), ("search_evidence", {}), ("propose_decision", {})])
-            for _ in range(n):
+            for i in range(n):
                 if loop == "account_program":
                     # A new plan version only when the last one is at least ten days old, as in real use.
                     pool = [x for x in west_ent if x[1] != "Acme Orchards" and last_plan.get(x[0], 999) - day >= 10]
@@ -295,6 +329,8 @@ def _build(c: psycopg.Connection) -> None:
                         continue
                     comp = R.choice(pool)
                     last_plan[comp[0]] = day
+                elif fresh and loop in EVERY_REP_LOOPS and i < len(rep_ids):
+                    comp = R.choice(by_rep[rep_ids[i]])
                 else:
                     comp = R.choice(companies)
                 cid, cname, sales_id, terr = comp
@@ -304,8 +340,8 @@ def _build(c: psycopg.Connection) -> None:
                 deal = deals.get(cid)
                 evs = []
                 if loop == "account_program":
-                    evs.append(evidence("company", cid, "product_usage", f"{cname}: weekly active users up {R.randint(20, 110)}% in {R.randint(3, 8)} weeks.", f"telemetry://{cid}/wau", when - DAY * 2, auid))
-                    if ct: evs.append(evidence("contact", ct[0], "call_quote", f"{ct[1]} ({ct[2]}): \"{R.choice(['We need this before the board review.', 'Migration effort is my only worry.', 'Budget is approved for Q1.', 'Show me how it works with our warehouse.'])}\"", f"gong://calls/{cid}-{day}", when - DAY * 5, auid))
+                    evs.append(evidence("company", cid, "product_usage", f"{cname}: weekly active users up {R.randint(20, 110)}% in {R.randint(3, 8)} weeks.", f"telemetry://{cid}/wau", when - DAY * 2, auid, when))
+                    if ct: evs.append(evidence("contact", ct[0], "call_quote", f"{ct[1]} ({ct[2]}): \"{R.choice(['We need this before the board review.', 'Migration effort is my only worry.', 'Budget is approved for Q1.', 'Show me how it works with our warehouse.'])}\"", f"gong://calls/{cid}-{day}", when - DAY * 5, auid, when))
                     payload = demo_plan(cname, ct, R.choice(["rep", "rep", "agent"]), owner_name.get(sales_id, "the rep"), evs)
                     d, outcome = decision(rid, auid, lvl, loop, "propose_strategy", "company", cid,
                                           f"{cname}: usage is climbing and {ct[1] if ct else 'the champion'} named a deadline. Propose a plan with {('the rep' if payload['sender']['type'] == 'rep' else 'an agent')} as sender.",
@@ -319,14 +355,14 @@ def _build(c: psycopg.Connection) -> None:
                 elif loop == "deal_inspection" and deal:
                     risk = R.choice(["No economic buyer identified at proposal stage.", "Champion has not replied in 16 days.", "Close date is before the procurement review can finish.", "No mutual plan, and the deal skipped technical validation."])
                     evs.append(evidence("deal", deal[0], "crm_record", f"{deal[1]}: stage {deal[2]}, ${deal[3]:,.0f}.", f"crm://deals/{deal[0]}", when, auid))
-                    if ct: evs.append(evidence("contact", ct[0], "email_from_contact", f"{ct[1]}: \"{R.choice(['Let us regroup after the holidays.', 'Looping in procurement.', 'Can you send pricing for three years?'])}\"", f"mail://{cid}/{ct[0]}", when - DAY * 3, auid))
+                    if ct: evs.append(evidence("contact", ct[0], "email_from_contact", f"{ct[1]}: \"{R.choice(['Let us regroup after the holidays.', 'Looping in procurement.', 'Can you send pricing for three years?'])}\"", f"mail://{cid}/{ct[0]}", when - DAY * 3, auid, when))
                     decision(rid, auid, lvl, loop, "flag_risk", "deal", deal[0], f"{deal[1]}: {risk}", {"risk": risk, "next_step": "Book a call with the economic buyer this week."}, evs, when, reviewer, fresh)
                 elif loop == "conversation_capture" and deal and ct:
-                    evs.append(evidence("contact", ct[0], "call_quote", f"{ct[1]}: \"We are targeting the end of next month to sign.\"", f"gong://calls/{cid}-{day}#t={R.randint(3, 40)}:{R.randint(10, 59)}", when - dt.timedelta(hours=6), auid))
+                    evs.append(evidence("contact", ct[0], "call_quote", f"{ct[1]}: \"We are targeting the end of next month to sign.\"", f"gong://calls/{cid}-{day}#t={R.randint(3, 40)}:{R.randint(10, 59)}", when - dt.timedelta(hours=6), auid, when))
                     newdate = (NOW + DAY * R.randint(25, 45)).date().isoformat()
                     decision(rid, auid, lvl, loop, "update_field", "deal", deal[0], f"{deal[1]}: buyer said end of next month on the call. Move the close date to {newdate}.",
                              {"table": "deals", "field": "expected_closing_date", "row_id": deal[0], "value": newdate}, evs, when, reviewer, fresh)
-                    if R.random() < .3:
+                    if (fresh and i < len(rep_ids)) or R.random() < .3:   # last night, one promise per rep
                         c.execute("insert into public.commitments (subject_type, subject_id, promise, owner_user_id, due_on, status, source_evidence_id, created_at) values "
                                   "('company',%s,%s,%s,%s,%s,%s,%s)", (str(cid), R.choice(["Send the SOC 2 report.", "Share the migration plan.", "Intro to a reference customer."]),
                                                                      reviewer, (when + DAY * 5).date(), "open" if day < 6 else "fulfilled", evs[0], when))
@@ -368,6 +404,10 @@ def _build(c: psycopg.Connection) -> None:
                     evs.append(evidence("territory", 1, "inferred", "Deals without a technical champion closed at 11% vs 34% with one, over 140 closed deals.", f"run://{rid}", when, auid))
                     decision(rid, auid, lvl, loop, "propose_skill_version", "skill", "deal-inspection", "Losses cluster where there is no technical champion. Add that check to the deal inspection skill.",
                              {"skill": "deal-inspection"}, evs, when, owner_uid, fresh)
+
+    # Open promises are due relative to today: the oldest was due yesterday, the rest are still ahead.
+    for i, (pid,) in enumerate(q("select id from public.commitments where status = 'open' order by created_at, id")):
+        c.execute("update public.commitments set due_on = %s where id = %s", (NOW.date() + DAY * (-1 if i == 0 else 2 + i), pid))
 
     # One policy violation, the reason outreach was demoted.
     kd = one("select d.id from public.decisions d where d.\"loop\" = 'outreach' and d.made_at < now() - interval '12 days' order by d.made_at desc limit 1")

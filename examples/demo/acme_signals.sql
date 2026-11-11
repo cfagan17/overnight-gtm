@@ -15,28 +15,34 @@ update public.contacts set first_name = 'Priya',  last_name = 'Shah' where compa
 update public.contacts set first_name = 'Casey',  last_name = 'Ruiz' where company_id = 1 and title = 'Director of Procurement';
 
 -- First-hand signals. recorded_by is the capture integration's service identity.
-insert into public.evidence (subject_type, subject_id, kind, claim, source_uri, observed_at, strength, recorded_by) values
+-- Dates are relative to when this file is loaded, including the dates inside the source links,
+-- so the signals are always recent. created_at is set to the time of the signal for the same reason.
+insert into public.evidence (subject_type, subject_id, kind, claim, source_uri, observed_at, strength, recorded_by, created_at)
+select v.subject_type, v.subject_id, v.kind, v.claim,
+       replace(v.source_uri, '{date}', to_char(now() - v.age, 'YYYY-MM-DD')), now() - v.age, 'weak', v.recorded_by::uuid, now() - v.age
+from (values
   ('company', '1', 'product_usage',
    'Trial workspace weekly active users rose from 41 to 87 over the last six weeks.',
-   'telemetry://acme-orchards/trial/weekly-active-users', now() - interval '2 days', 'weak', '00000000-0000-0000-0000-0000000000aa'),
+   'telemetry://acme-orchards/trial/weekly-active-users', interval '2 days', '00000000-0000-0000-0000-0000000000aa'),
   ('company', '1', 'product_usage',
    'Compute credit use in the trial is 2.3 times what it was six weeks ago, mostly scheduled pipeline jobs.',
-   'telemetry://acme-orchards/trial/compute-credits', now() - interval '2 days', 'weak', '00000000-0000-0000-0000-0000000000aa'),
+   'telemetry://acme-orchards/trial/compute-credits', interval '2 days', '00000000-0000-0000-0000-0000000000aa'),
   ('contact', (select id::text from public.contacts where company_id = 1 and last_name = 'Shah'), 'call_quote',
    'Priya Shah: "If we can move our pipeline jobs off the homegrown scheduler by Q2, I can make the case to Jordan."',
-   'gong://calls/acme-2026-10-21#t=14:05', now() - interval '14 days', 'weak', '00000000-0000-0000-0000-0000000000aa'),
+   'gong://calls/acme-{date}#t=14:05', interval '14 days', '00000000-0000-0000-0000-0000000000aa'),
   ('contact', (select id::text from public.contacts where company_id = 1 and last_name = 'Lee'), 'call_quote',
    'Jordan Lee: "My worry is the migration. My team cannot take on another six-month project this year."',
-   'gong://calls/acme-2026-10-21#t=31:40', now() - interval '14 days', 'weak', '00000000-0000-0000-0000-0000000000aa'),
+   'gong://calls/acme-{date}#t=31:40', interval '14 days', '00000000-0000-0000-0000-0000000000aa'),
   ('contact', (select id::text from public.contacts where company_id = 1 and last_name = 'Ruiz'), 'email_from_contact',
    'Casey Ruiz: "Anything multi-year has to go through our procurement review, which runs about three weeks."',
-   'mail://acme-orchards/casey.ruiz/2026-10-28', now() - interval '7 days', 'weak', '00000000-0000-0000-0000-0000000000aa'),
+   'mail://acme-orchards/casey.ruiz/{date}', interval '7 days', '00000000-0000-0000-0000-0000000000aa'),
   ('company', '1', 'rep_observation',
    'Maya: Priya asked twice about onboarding help. Jordan skipped the last demo and sent a delegate.',
-   'crm://notes/acme-orchards/2026-10-30', now() - interval '5 days', 'weak', '00000000-0000-0000-0000-000000000005'),
+   'crm://notes/acme-orchards/{date}', interval '5 days', '00000000-0000-0000-0000-000000000005'),
   ('company', '1', 'web_page',
    'Acme Orchards posted two data platform engineer roles this month.',
-   'https://careers.acmeorchards.example/data-platform', now() - interval '9 days', 'weak', '00000000-0000-0000-0000-0000000000aa');
+   'https://careers.acmeorchards.example/data-platform', interval '9 days', '00000000-0000-0000-0000-0000000000aa')
+) as v (subject_type, subject_id, kind, claim, source_uri, age, recorded_by);
 
 -- The last plan, and how Maya reviewed it: she kept it but changed the sender to herself.
 with d as (

@@ -1,0 +1,62 @@
+name: demo-reset
+
+# DESTRUCTIVE, on purpose. Every night this WIPES the public demo Supabase project
+# (the one behind overnight-gtm.vercel.app): it drops the public schema, the Overnight schemas
+# and every auth user, then installs fresh with the Northwind demo data and the demo sign-ins.
+# The demo history is generated relative to the time of the install, so without this the
+# console's "overnight" numbers go to zero a day and a half after the last install.
+#
+# It can only point at the demo project. The connection string comes from the repository
+# secret SUPABASE_DB_URL, and the first step refuses to go on unless that string names the
+# demo project's ref below. Never reuse this workflow for a project with real data.
+
+on:
+  schedule:
+    - cron: "17 12 * * *"   # 12:17 UTC: 04:17 Pacific in winter, 05:17 in summer
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: demo-reset
+  cancel-in-progress: false
+
+env:
+  DEMO_PROJECT_REF: migmmndgaqbygymoklot   # the same project console/src/lib/supabase.ts points at by default
+
+jobs:
+  reset:
+    # Not on forks, and only from main, so a branch cannot change what gets run against the demo.
+    if: github.repository == 'cfagan17/overnight-gtm' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - name: Refuse anything but the demo project
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::The repository secret SUPABASE_DB_URL is not set."; exit 1
+          fi
+          case "$SUPABASE_DB_URL" in
+            postgresql://postgres."$DEMO_PROJECT_REF":*@*.pooler.supabase.com:*/postgres*) ;;
+            postgresql://postgres:*@db."$DEMO_PROJECT_REF".supabase.co:*/postgres*) ;;
+            *) echo "::error::SUPABASE_DB_URL does not point at the demo project ($DEMO_PROJECT_REF). Nothing was changed."; exit 1 ;;
+          esac
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Wipe the demo project and install it fresh
+        run: python scripts/install_hosted.py --dsn "$SUPABASE_DB_URL" --reset --yes-wipe-public-schema --seed --demo --demo-logins
+      - name: Check that last night has runs
+        run: |
+          python - <<'EOF'
+          import os, psycopg
+          with psycopg.connect(os.environ["SUPABASE_DB_URL"]) as c:
+              runs, loops = c.execute("select count(*), count(distinct \"loop\") from public.runs where started_at > now() - interval '36 hours'").fetchone()
+          print(f"{runs} runs across {loops} loops in the last 36 hours")
+          assert runs > 0 and loops == 12, "the fresh demo has an empty or partial last night"
+          EOF
