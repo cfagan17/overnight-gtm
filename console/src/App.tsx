@@ -1,5 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { useSession } from './lib/session';
+import { DEMO } from './lib/supabase';
+import { PERSONAS } from './lib/meta';
 import Layout from './components/Layout';
 import { Spinner, Toasts } from './components/ui';
 import Login from './pages/Login';
@@ -18,7 +21,22 @@ import Slack from './pages/Slack';
 import About from './pages/About';
 
 export default function App() {
-  const { session, me, loading } = useSession();
+  const { session, me, loading, signInAs } = useSession();
+  // Demo only: ?as=maya on any page signs the visitor in as that demo person, then opens the page.
+  // It works for the six people on the sign-in page and nobody else, and does nothing when the
+  // console points at a real project. It gives no access the sign-in page does not already give.
+  const [params, setParams] = useSearchParams();
+  const want = DEMO ? PERSONAS.find((p) => p.key === params.get('as')?.toLowerCase()) : undefined;
+  const started = useRef(false);
+  useEffect(() => {
+    if (!want) return;
+    const strip = () => { const p = new URLSearchParams(params); p.delete('as'); setParams(p, { replace: true }); };
+    if (me?.email === want.email) return strip();
+    if (loading || started.current) return;
+    started.current = true;
+    signInAs(want.email).then((err) => { if (err) strip(); });
+  }, [want?.email, me?.email, loading]); // eslint-disable-line
+  if (want) return <div className="grid h-full place-items-center"><Spinner /></div>;
   if (loading && !session) return <div className="grid h-full place-items-center"><Spinner /></div>;
   if (!session || !me) return <><Login /><Toasts /></>;
   return (

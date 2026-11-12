@@ -194,10 +194,16 @@ def _build(c: psycopg.Connection) -> None:
         "select id, company_id, name, stage, amount from public.deals")}
     partners = q("select id, name from public.partners")
     west_ent = [x for x in companies if x[3] == 2]
-    by_rep = {}   # rep -> their accounts that have a deal and a contact
-    for x in companies:
-        if x[0] in deals and contacts.get(x[0]):
-            by_rep.setdefault(x[2], []).append(x)
+    # Loops only work on deals at a stage where the work makes sense: nobody inspects, re-dates or
+    # chases a deal that is already won or lost, and credit and customer health are for won deals.
+    is_open = lambda x: x[0] in deals and deals[x[0]][2] not in ("won", "lost")
+    open_cos = [x for x in companies if is_open(x) and contacts.get(x[0])]
+    won_cos = [x for x in companies if x[0] in deals and deals[x[0]][2] == "won"]
+    pool_for = {"deal_inspection": open_cos, "conversation_capture": open_cos, "outreach": open_cos,
+                "comp_ops": won_cos, "post_sale_health": won_cos}
+    by_rep = {}   # rep -> their accounts with an open deal and a contact
+    for x in open_cos:
+        by_rep.setdefault(x[2], []).append(x)
     rep_ids = sorted(by_rep)
 
     # Prompts in the database, plus a proposed edit from Sam waiting for approval.
@@ -332,7 +338,7 @@ def _build(c: psycopg.Connection) -> None:
                 elif fresh and loop in EVERY_REP_LOOPS and i < len(rep_ids):
                     comp = R.choice(by_rep[rep_ids[i]])
                 else:
-                    comp = R.choice(companies)
+                    comp = R.choice(pool_for.get(loop) or companies)
                 cid, cname, sales_id, terr = comp
                 reviewer = uid_of_sales.get(sales_id)
                 cts = contacts.get(cid, [])

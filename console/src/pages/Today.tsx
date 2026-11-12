@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Moon } from 'lucide-react';
 import { supabase, DEMO } from '../lib/supabase';
 import StartHere from '../components/StartHere';
+import ForecastHome from '../components/ForecastHome';
 import { q, useLoad } from '../lib/hooks';
 import { useSession } from '../lib/session';
 import { ago, pct } from '../lib/format';
@@ -37,6 +38,7 @@ export default function Today() {
   return (
     <Page kicker={new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
       title={<>Good {hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}, {first}.</>}>
+      {me?.role === 'manager' && <ForecastHome queue={data.queue} />}
       <div className="card relative mb-6 overflow-hidden p-6">
         <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-prim/20 blur-3xl" />
         <div className="flex items-start gap-4">

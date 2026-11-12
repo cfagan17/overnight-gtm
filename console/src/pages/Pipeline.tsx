@@ -41,18 +41,19 @@ export default function Pipeline() {
           ))}</div>
         </Card>
       )}
-      <div className="mt-6 grid grid-flow-col gap-4 overflow-x-auto pb-2" style={{ gridAutoColumns: 'minmax(230px,1fr)' }}>
+      {/* Five columns side by side from 1280px wide. Narrower than that, they scroll sideways. */}
+      <div className="mt-6 grid grid-flow-col auto-cols-[minmax(230px,1fr)] gap-3 overflow-x-auto pb-2 xl:grid-flow-row xl:auto-cols-auto xl:grid-cols-5 xl:overflow-visible">
         {STAGES.map((s) => {
           const ds = data.deals.filter((d) => d.stage === s.id);
           return (
-            <div key={s.id} className="min-w-[240px]">
+            <div key={s.id} className="min-w-0">
               <div className="mb-3 flex items-baseline justify-between px-1"><div className="text-sm font-bold">{s.name}</div><div className="text-xs tabular-nums text-ink-muted">{ds.length} · {money(ds.reduce((a, d) => a + Number(d.amount), 0))}</div></div>
               <div className="space-y-3">{ds.map((d) => (
                 <Link key={d.id} to={`/accounts/${d.company_id}`} className="card card-hover block p-4">
-                  <div className="text-sm font-semibold">{co[d.company_id]}</div>
+                  <div className="truncate text-sm font-semibold">{co[d.company_id]}</div>
                   <div className="mt-1 text-lg font-extrabold tabular-nums">{money(d.amount)}</div>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5"><Badge color="#93a0bb">{d.forecast_category}</Badge>{risky.has(String(d.id)) && <Badge color="#f87171">risk flagged</Badge>}</div>
-                  <div className="mt-3 flex items-center gap-2 text-xs text-ink-muted"><Avatar name={sname[d.sales_id] || '?'} size={20} />{sname[d.sales_id]}<span className="ml-auto">{d.expected_closing_date}</span></div>
+                  <div className="mt-3 flex items-center gap-2 text-xs text-ink-muted"><Avatar name={sname[d.sales_id] || '?'} size={20} /><span className="truncate">{sname[d.sales_id]}</span><span className="ml-auto whitespace-nowrap">{d.expected_closing_date}</span></div>
                 </Link>
               ))}</div>
             </div>

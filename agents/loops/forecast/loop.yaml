@@ -16,4 +16,4 @@ promotion_metric: error vs actuals, compared with the human call
 input_example: '{"snapshot_week": "2026-11-02"}'
 prompt: prompt.md
 prompt_version: v2
-technical_notes: "Record each segment's call as evidence of kind \"inferred\" on the segment's territory. This loop starts at level 0."
+technical_notes: "Record each segment's call as evidence of kind \"inferred\" on the segment's territory. Start each claim with the numbers in this wording, so the forecast_calls view can read them: \"Agent forecast call: $1.42M this quarter (range $1.25M to $1.56M). Human call: $1.38M.\" This loop starts at level 0."

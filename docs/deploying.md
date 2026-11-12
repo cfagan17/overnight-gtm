@@ -92,3 +92,12 @@ The history is generated relative to the time of the install, and the console's 
 - Each install also moves the Acme Orchards deal to close eight days out and shifts the dates in the saved Claude run to match (see `examples/live-run/README.md`).
 
 Not tested here: the workflow itself has not run against the hosted project from this branch. The install command it runs is the one above. GitHub can start scheduled runs late, and turns schedules off in a repository with no activity for 60 days. For the first several hours after each reset the run count includes the night before as well, because both nights fall inside the 36 hours.
+
+### Demo links
+
+In demo mode only, adding `?as=<person>` to any console address signs the visitor in as that demo person and opens the page. The six names are `maya`, `sam`, `vic`, `cy`, `pat` and `morgan`. Any other value is ignored. A console built with its own `VITE_SUPABASE_URL` ignores the parameter entirely.
+
+- `https://overnight-gtm.vercel.app/reviews?as=maya&for=Acme%20Orchards` opens the Acme Orchards account plan in Maya's review inbox. `for=` picks the first inbox item about that subject, its account plan if there is one.
+- `https://overnight-gtm.vercel.app/?as=vic` opens Today as Vic, the VP Sales, which leads with the forecast.
+
+The link gives nothing the sign-in page does not: the same six people, with the same public demo password, and row-level security still decides what each one sees.

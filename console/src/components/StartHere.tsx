@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 import { useSession } from '../lib/session';
 import { toast } from './ui';
 
@@ -26,9 +25,7 @@ export default function StartHere({ queue }: { queue: any[] }) {
     setBusy(true);
     const err = await signInAs(MAYA);
     if (err) { setBusy(false); return toast(err, 'err'); }
-    const { data } = await supabase.rpc('review_queue');
-    const d = (data || []).find(isAcmePlan);
-    nav(d ? `/reviews?d=${d.decision_id}` : '/reviews');
+    nav('/reviews?for=Acme%20Orchards');
   }
 
   const stops = [

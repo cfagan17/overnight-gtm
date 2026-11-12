@@ -15,8 +15,12 @@ export default function Reviews() {
     if (error) throw error;
     return data as any[];
   }, [me?.userId]);
-  const sel = Number(params.get('d')) || data?.[0]?.decision_id;
-  useEffect(() => { if (data?.length && !params.get('d')) setParams({ d: String(data[0].decision_id) }, { replace: true }); }, [data]); // eslint-disable-line
+  // ?for=Acme Orchards opens the first item about that subject, its account plan if there is one.
+  const about = params.get('for');
+  const named = about ? (data || []).filter((x) => x.subject_name === about) : [];
+  const first = named.find((x) => x.action === 'propose_strategy') || named[0] || data?.[0];
+  const sel = Number(params.get('d')) || first?.decision_id;
+  useEffect(() => { if (data?.length && !params.get('d')) setParams({ d: String(first.decision_id) }, { replace: true }); }, [data]); // eslint-disable-line
 
   if (loading && !data) return <Spinner />;
   if (error) return <Page title="Review inbox"><Err e={error} /></Page>;
