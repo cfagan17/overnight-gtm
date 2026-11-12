@@ -50,12 +50,12 @@ export default function Account() {
     ...commits.map((m) => ({ at: m.created_at, kind: 'commitment', m })),
   ].sort((a, b) => +new Date(b.at) - +new Date(a.at));
   const icon: any = { evidence: Lightbulb, decision: Gavel, review: Gavel, plan: FileText, touch: Send, commitment: Handshake };
-  const color: any = { evidence: '#a78bfa', decision: '#fbbf24', review: '#f472b6', plan: '#60a5fa', touch: '#34d399', commitment: '#f472b6' };
+  const color: any = { evidence: '#1d4ed8', decision: '#b45309', review: '#be185d', plan: '#0f766e', touch: '#047857', commitment: '#be185d' };
   const latest = strats[0];
 
   return (
     <Page kicker={<Link to="/accounts" className="hover:text-ink">Accounts</Link>} title={co.name}
-      actions={<div className="flex flex-wrap gap-2"><Badge color="#60a5fa">{terr?.name}</Badge><Badge color="#93a0bb">owner {owner ? `${owner.first_name} ${owner.last_name}` : '—'}</Badge><Badge color="#93a0bb">{co.segment}, {co.state_abbr}</Badge></div>}>
+      actions={<div className="flex flex-wrap gap-2"><Badge color="#0f766e">{terr?.name}</Badge><Badge color="#52525b">owner {owner ? `${owner.first_name} ${owner.last_name}` : '—'}</Badge><Badge color="#52525b">{co.segment}, {co.state_abbr}</Badge></div>}>
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div>
           <Tabs value={tab} onChange={setTab} tabs={[{ id: 'why', label: `Why timeline (${events.length})` }, { id: 'plan', label: `Plans (${strats.length})` }, { id: 'evidence', label: `Evidence (${evidence.length})` }]} />
@@ -67,14 +67,14 @@ export default function Account() {
                   const I = icon[ev.kind];
                   return (
                     <li key={i} className="relative">
-                      <span className="absolute -left-[35px] grid h-6 w-6 place-items-center rounded-full ring-4 ring-night-800" style={{ background: color[ev.kind] }}><I size={13} color="#0b1020" /></span>
+                      <span className="absolute -left-[35px] grid h-6 w-6 place-items-center rounded-full ring-4 ring-night-800" style={{ background: color[ev.kind] }}><I size={13} color="#ffffff" /></span>
                       <div className="text-xs text-ink-faint">{time(ev.at)}</div>
-                      {ev.kind === 'evidence' && <div className="mt-1 text-sm">{ev.e.claim} <span className="ml-1 inline-flex gap-1 align-middle"><Strength s={ev.e.strength} /><Badge color="#5d6985">{ev.e.kind.replace(/_/g, ' ')}</Badge></span></div>}
+                      {ev.kind === 'evidence' && <div className="mt-1 text-sm">{ev.e.claim} <span className="ml-1 inline-flex gap-1 align-middle"><Strength s={ev.e.strength} /><Badge color="#71717a">{ev.e.kind.replace(/_/g, ' ')}</Badge></span></div>}
                       {ev.kind === 'decision' && <div className="mt-1 text-sm"><span className="mr-2 inline-flex gap-1 align-middle"><LoopBadge loop={ev.d.loop} /><ActionBadge action={ev.d.action} /></span>{ev.d.rationale}</div>}
                       {ev.kind === 'review' && <div className="mt-1 text-sm">Reviewed: <Outcome o={ev.d.review_outcome} /> {ev.d.review_note && <span className="text-ink-muted">“{ev.d.review_note}”</span>}</div>}
-                      {ev.kind === 'plan' && <div className="mt-1 text-sm">Plan version {ev.s.version} <Badge color="#60a5fa">{ev.s.status}</Badge></div>}
-                      {ev.kind === 'touch' && <div className="mt-1 text-sm">{ev.t.channel} to {cname[ev.t.contact_id]}, sent by {ev.t.sender_type}: {ev.t.purpose} <Badge color="#34d399">{ev.t.status.replace('_', ' ')}</Badge></div>}
-                      {ev.kind === 'commitment' && <div className="mt-1 text-sm">We promised: {ev.m.promise} <Badge color="#f472b6">{ev.m.status}</Badge></div>}
+                      {ev.kind === 'plan' && <div className="mt-1 text-sm">Plan version {ev.s.version} <Badge color="#0f766e">{ev.s.status}</Badge></div>}
+                      {ev.kind === 'touch' && <div className="mt-1 text-sm">{ev.t.channel} to {cname[ev.t.contact_id]}, sent by {ev.t.sender_type}: {ev.t.purpose} <Badge color="#047857">{ev.t.status.replace('_', ' ')}</Badge></div>}
+                      {ev.kind === 'commitment' && <div className="mt-1 text-sm">We promised: {ev.m.promise} <Badge color="#be185d">{ev.m.status}</Badge></div>}
                     </li>
                   );
                 })}
@@ -87,8 +87,8 @@ export default function Account() {
               {strats.map((s) => {
                 const d = decisions.find((x) => x.id === s.decision_id);
                 return (
-                  <Card key={s.id} title={<>Version {s.version} <span className="ml-2 font-normal text-ink-muted">{day(s.created_at)}</span></>} right={<div className="flex gap-2"><Badge color="#60a5fa">{s.status}</Badge>{d && <Outcome o={d.review_outcome} />}</div>}>
-                    {d?.review_note && <div className="mb-4 rounded-xl bg-people/10 px-4 py-3 text-sm"><span className="font-semibold text-people">Reviewer: </span>“{d.review_note}”</div>}
+                  <Card key={s.id} title={<>Version {s.version} <span className="ml-2 font-normal text-ink-muted">{day(s.created_at)}</span></>} right={<div className="flex gap-2"><Badge color="#0f766e">{s.status}</Badge>{d && <Outcome o={d.review_outcome} />}</div>}>
+                    {d?.review_note && <div className="mb-4 rounded-md bg-people/10 px-4 py-3 text-sm"><span className="font-semibold text-people">Reviewer: </span>“{d.review_note}”</div>}
                     <PlanView plan={s.plan} contacts={cfull} />
                   </Card>
                 );
@@ -100,17 +100,17 @@ export default function Account() {
             <div className="card divide-y divide-night-600/60">
               {evidence.sort((a, b) => +new Date(b.observed_at) - +new Date(a.observed_at)).map((e) => (
                 <div key={e.id} className="px-5 py-3"><div className="text-sm">{e.claim}</div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-faint"><Strength s={e.strength} /><span>{e.kind.replace(/_/g, ' ')}</span><span className="font-mono">{e.source_uri}</span><span>{time(e.observed_at)}</span>{e.downgraded && <Badge color="#f87171">downgraded</Badge>}</div></div>
+                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-ink-faint"><Strength s={e.strength} /><span>{e.kind.replace(/_/g, ' ')}</span><span className="font-mono">{e.source_uri}</span><span>{time(e.observed_at)}</span>{e.downgraded && <Badge color="#b91c1c">downgraded</Badge>}</div></div>
               ))}
             </div>
           )}
         </div>
         <div className="space-y-4">
-          {latest && <Card title="Current plan"><div className="flex items-center gap-2 text-sm">Version {latest.version} <Badge color="#60a5fa">{latest.status}</Badge></div>{latest.plan?.sender && <div className="mt-2 text-sm text-ink-muted">Sender: <b className="text-ink">{latest.plan.sender.type}</b></div>}</Card>}
+          {latest && <Card title="Current plan"><div className="flex items-center gap-2 text-sm">Version {latest.version} <Badge color="#0f766e">{latest.status}</Badge></div>{latest.plan?.sender && <div className="mt-2 text-sm text-ink-muted">Sender: <b className="text-ink">{latest.plan.sender.type}</b></div>}</Card>}
           <Card title="Deals" pad={false}>
             <ul className="divide-y divide-night-600/60">{deals.map((d) => (
               <li key={d.id} className="px-5 py-3"><div className="text-sm font-semibold">{d.name}</div>
-                <div className="mt-1 flex flex-wrap gap-2 text-xs"><span className="tabular-nums font-semibold">{money(d.amount)}</span><Badge color="#fbbf24">{STAGES.find((s) => s.id === d.stage)?.name}</Badge><Badge color="#93a0bb">{d.forecast_category}</Badge><span className="text-ink-faint">close {d.expected_closing_date}</span></div></li>
+                <div className="mt-1 flex flex-wrap gap-2 text-xs"><span className="tabular-nums font-semibold">{money(d.amount)}</span><Badge color="#b45309">{STAGES.find((s) => s.id === d.stage)?.name}</Badge><Badge color="#52525b">{d.forecast_category}</Badge><span className="text-ink-faint">close {d.expected_closing_date}</span></div></li>
             ))}</ul>
           </Card>
           <Card title="Buying group" pad={false}>

@@ -40,11 +40,10 @@ export default function Today() {
       title={<>Good {hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}, {first}.</>}>
       {me?.role === 'manager' && <ForecastHome queue={data.queue} />}
       <div className="card relative mb-6 overflow-hidden p-6">
-        <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-prim/20 blur-3xl" />
         <div className="flex items-start gap-4">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-prim/15 text-prim"><Moon size={22} /></div>
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded border border-night-600 text-ink-muted"><Moon size={18} /></div>
           <div>
-            <div className="text-lg font-bold">Overnight, {runCount} runs across {loopsRun} loops read your data and recorded {data.evidence} new pieces of evidence.</div>
+            <div className="text-base font-semibold">Overnight, {runCount} runs across {loopsRun} loops read your data and recorded {data.evidence} new pieces of evidence.</div>
             <div className="mt-1 text-ink-muted">{data.queue.length ? <>{data.queue.length} {data.queue.length === 1 ? 'decision needs' : 'decisions need'} you. Each answer is how the loops are graded.</> : 'Nothing is waiting on you.'}</div>
             {data.queue.length > 0 && <Link to="/reviews" className="btn-primary mt-4">Open your review inbox<ArrowRight size={16} /></Link>}
           </div>
@@ -54,10 +53,10 @@ export default function Today() {
       {DEMO && <StartHere queue={data.queue} />}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Waiting on you" value={data.queue.length} color="#fbbf24" sub="decisions to review" />
+        <Stat label="Waiting on you" value={data.queue.length} color="#b45309" sub="decisions to review" />
         <Stat label="Runs last night" value={runCount} sub={`${loopsRun} of 12 loops`} />
-        <Stat label="New evidence" value={data.evidence} sub="rows, each with a source" color="#a78bfa" />
-        <Stat label="Open escalations" value={data.esc.length} sub="agents asked a person" color="#f472b6" />
+        <Stat label="New evidence" value={data.evidence} sub="rows, each with a source" color="#1d4ed8" />
+        <Stat label="Open escalations" value={data.esc.length} sub="agents asked a person" color="#be185d" />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
@@ -100,7 +99,7 @@ export default function Today() {
         </Card>
         <Card title="Promises we made to customers" pad={false}>
           <ul className="divide-y divide-night-600/60">{data.commits.map((c) => (
-            <li key={c.id} className="flex items-center gap-3 px-5 py-3 text-sm"><span className="flex-1">{c.promise}</span><Badge color={new Date(c.due_on) < new Date() ? '#f87171' : '#93a0bb'}>due {c.due_on}</Badge></li>
+            <li key={c.id} className="flex items-center gap-3 px-5 py-3 text-sm"><span className="flex-1">{c.promise}</span><Badge color={new Date(c.due_on) < new Date() ? '#b91c1c' : '#52525b'}>due {c.due_on}</Badge></li>
           ))}{!data.commits.length && <li className="px-5 py-5 text-sm text-ink-muted">None open.</li>}</ul>
         </Card>
       </div>

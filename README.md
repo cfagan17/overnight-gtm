@@ -4,7 +4,7 @@
 
 **Live demo:** [overnight-gtm.vercel.app](https://overnight-gtm.vercel.app). Pick one of six people at a fictional company and see the same system through their access. No account or password needed.
 
-![The Overnight console, signed in as an account executive in the demo](docs/console.png)
+![The Overnight console, signed in as the Rev Ops owner in the demo](docs/console.png)
 
 Most companies use AI as a feature: draft the email, summarize the call, update the CRM. Overnight is for putting AI at the center of how go to market makes decisions, safely. Every Rev Ops function becomes a loop that reads all of the data on a schedule and proposes what to do next. People review the work, and each loop climbs a ladder of **earned autonomy** only as fast as its record allows.
 

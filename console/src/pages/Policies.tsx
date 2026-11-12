@@ -36,7 +36,7 @@ export function Policies() {
       <div className="grid gap-6 xl:grid-cols-2">
         <Card title="Rules of engagement" pad={false}>
           <ul className="divide-y divide-night-600/60">{data.pol.map((p) => (
-            <li key={p.id} className="flex items-start gap-3 px-5 py-3"><div className="flex-1"><div className="text-sm font-semibold">{p.name}</div><div className="mt-0.5 font-mono text-xs text-ink-faint">{p.rule_type} {JSON.stringify(p.params)}</div></div><Badge color={p.active ? '#34d399' : '#5d6985'}>{p.active ? 'on' : 'off'}</Badge></li>
+            <li key={p.id} className="flex items-start gap-3 px-5 py-3"><div className="flex-1"><div className="text-sm font-semibold">{p.name}</div><div className="mt-0.5 font-mono text-xs text-ink-faint">{p.rule_type} {JSON.stringify(p.params)}</div></div><Badge color={p.active ? '#047857' : '#71717a'}>{p.active ? 'on' : 'off'}</Badge></li>
           ))}</ul>
         </Card>
         <Card title="Do not contact" pad={false}>
@@ -68,7 +68,7 @@ export function Policies() {
         </Card>
         <Card title="Registered evidence sources" pad={false}>
           <ul className="divide-y divide-night-600/60">{data.sources.map((s) => (
-            <li key={s.uri_prefix} className="flex items-center gap-3 px-5 py-3 text-sm"><span className="font-mono">{s.uri_prefix}</span><span className="flex-1 text-ink-muted">{s.description}</span>{s.agents_may_write ? <Badge color="#fbbf24">agents may write</Badge> : <Badge color="#34d399">integration only</Badge>}</li>
+            <li key={s.uri_prefix} className="flex items-center gap-3 px-5 py-3 text-sm"><span className="font-mono">{s.uri_prefix}</span><span className="flex-1 text-ink-muted">{s.description}</span>{s.agents_may_write ? <Badge color="#b45309">agents may write</Badge> : <Badge color="#047857">integration only</Badge>}</li>
           ))}</ul>
         </Card>
       </div>
@@ -94,8 +94,8 @@ export function Audit() {
           <thead><tr className="border-b border-night-600/60 text-left">{['When', 'Table', 'Row', 'Change', 'By', 'Decision', 'Run'].map((h) => <th key={h} className="label px-5 py-3">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-night-600/50">{data.map((a) => (
             <tr key={a.id}><td className="px-5 py-2.5 text-ink-muted">{time(a.at)}</td><td className="px-5 py-2.5 font-mono text-xs">{a.table_name}</td><td className="px-5 py-2.5 font-mono text-xs text-ink-faint">{a.row_id}</td>
-              <td className="px-5 py-2.5"><Badge color={a.op === 'DELETE' ? '#f87171' : a.op === 'INSERT' ? '#34d399' : '#fbbf24'}>{a.op.toLowerCase()}</Badge></td>
-              <td className="px-5 py-2.5"><Badge color={a.principal_kind === 'agent' ? '#a78bfa' : '#60a5fa'}>{!a.principal_kind || a.principal_kind === 'none' ? 'setup' : a.principal_kind}</Badge></td>
+              <td className="px-5 py-2.5"><Badge color={a.op === 'DELETE' ? '#b91c1c' : a.op === 'INSERT' ? '#047857' : '#b45309'}>{a.op.toLowerCase()}</Badge></td>
+              <td className="px-5 py-2.5"><Badge color={a.principal_kind === 'agent' ? '#1d4ed8' : '#0f766e'}>{!a.principal_kind || a.principal_kind === 'none' ? 'setup' : a.principal_kind}</Badge></td>
               <td className="px-5 py-2.5 font-mono text-xs">{a.decision_id || ''}</td><td className="px-5 py-2.5 font-mono text-xs">{a.run_id || ''}</td></tr>
           ))}</tbody></table></div>
       )}

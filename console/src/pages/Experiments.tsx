@@ -36,23 +36,23 @@ export default function Experiments() {
     <Page kicker="Learning without fooling ourselves" title="Experiments">
       <p className="-mt-3 mb-6 max-w-3xl text-ink-muted">Deals close for reasons a loop did not cause. So customer-facing loops are measured against a holdout: accounts fixed in advance that the agent never touches. Once an experiment starts, the database freezes who is in which group.</p>
       {!data?.length ? <Empty>No experiments yet.</Empty> : data.map((e) => (
-        <Card key={e.id} className="mb-6" title={e.name} right={<div className="flex gap-2"><LoopBadge loop={e.loop} /><Badge color={e.status === 'running' ? '#34d399' : '#93a0bb'}>{e.status}</Badge></div>}>
+        <Card key={e.id} className="mb-6" title={e.name} right={<div className="flex gap-2"><LoopBadge loop={e.loop} /><Badge color={e.status === 'running' ? '#047857' : '#52525b'}>{e.status}</Badge></div>}>
           <p className="text-sm text-ink-muted">{e.hypothesis}. Metric: <span className="font-mono">{e.metric}</span>. {Number(e.holdout_pct)}% held out{e.starts_at ? `, started ${day(e.starts_at)}` : ''}.</p>
           {e.rerr && <div className="mt-4 text-sm text-ink-muted">{e.rerr}</div>}
           {e.result && (
             <>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                {[['Agent accounts', e.result.treatment, '#a78bfa'], ['Held back', e.result.holdout, '#93a0bb']].map(([label, g, c]: any) => (
-                  <div key={label} className="rounded-xl bg-night-850 p-4">
+                {[['Agent accounts', e.result.treatment, '#1d4ed8'], ['Held back', e.result.holdout, '#52525b']].map(([label, g, c]: any) => (
+                  <div key={label} className="rounded-md bg-night-850 p-4">
                     <div className="label">{label}</div>
-                    <div className="mt-2 text-3xl font-extrabold tabular-nums" style={{ color: c }}>{pct(g.mean, 1)}</div>
+                    <div className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: c }}>{pct(g.mean, 1)}</div>
                     <div className="text-sm text-ink-muted">of {g.n} accounts booked a meeting</div>
                     <div className="mt-3 flex flex-wrap gap-[3px]">{Array.from({ length: Math.min(g.n, 320) }).map((_, i) => <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: i < Math.round(g.mean * g.n) ? c : '#2a3550' }} />)}</div>
                   </div>
                 ))}
               </div>
               <RangeChart r={e.result} />
-              <div className={`mt-6 rounded-xl px-4 py-3 text-sm ${e.result.conclusive ? 'bg-control/10 text-emerald-200' : 'bg-loop/10 text-amber-100'}`}>
+              <div className={`mt-6 rounded-md px-4 py-3 text-sm ${e.result.conclusive ? 'bg-control/10 text-emerald-700' : 'bg-loop/10 text-amber-800'}`}>
                 {e.result.conclusive ? 'The difference is real at 95% confidence.' :
                   <>Looks like a win, but with groups this small the honest answer is that we cannot tell yet. The range still includes no effect. Detecting a {(Number(e.result.difference) * 100).toFixed(0)}-point lift needs about {e.result.subjects_per_arm_needed_for_this_difference} accounts per group.</>}
               </div>

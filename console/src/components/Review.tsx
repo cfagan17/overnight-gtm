@@ -56,7 +56,7 @@ export function ReviewDetail({ id, name, onDone }: { id: number; name?: string; 
   return (
     <div className="space-y-4">
       <Card>
-        <div className="flex flex-wrap items-center gap-2"><LoopBadge loop={d.loop} /><ActionBadge action={d.action} /><Badge color="#fbbf24">level {d.autonomy_level}: {LEVELS[d.autonomy_level]}</Badge></div>
+        <div className="flex flex-wrap items-center gap-2"><LoopBadge loop={d.loop} /><ActionBadge action={d.action} /><Badge color="#b45309">level {d.autonomy_level}: {LEVELS[d.autonomy_level]}</Badge></div>
         <div className="mt-3 text-xl font-bold"><SubjectLink type={d.subject_type} id={d.subject_id} name={name} /></div>
         <p className="mt-3 text-[15px] leading-relaxed text-ink">{d.rationale}</p>
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-muted">
@@ -71,7 +71,7 @@ export function ReviewDetail({ id, name, onDone }: { id: number; name?: string; 
         <Card title="Proposed change"><div className="font-mono text-sm">{d.payload.table}.{d.payload.field} → <span className="text-loop">{String(d.payload.value)}</span></div></Card>
       )}
       {touches.length > 0 && (
-        <Card title="Queued touch">{touches.map((t) => <div key={t.id} className="text-sm"><Badge color="#60a5fa">{t.channel}</Badge> sent by <b>{t.sender_type}</b>: {t.purpose}. <span className="text-ink-muted">Status {t.status.replace('_', ' ')}</span></div>)}</Card>
+        <Card title="Queued touch">{touches.map((t) => <div key={t.id} className="text-sm"><Badge color="#0f766e">{t.channel}</Badge> sent by <b>{t.sender_type}</b>: {t.purpose}. <span className="text-ink-muted">Status {t.status.replace('_', ' ')}</span></div>)}</Card>
       )}
       {d.payload && Object.keys(d.payload).length > 0 && !plan && d.action !== 'update_field' && (
         <Card title="What the agent proposes">
@@ -104,12 +104,12 @@ export function ReviewDetail({ id, name, onDone }: { id: number; name?: string; 
       {d.review_outcome ? (
         <Card><div className="text-sm">Reviewed: <b>{d.review_outcome}</b> {ago(d.reviewed_at)}. {d.review_note}</div></Card>
       ) : (
-        <div className="card sticky bottom-4 border-prim/40 p-4 shadow-glow">
+        <div className="card sticky bottom-4 border-prim/40 p-4 ">
           {mode !== 'none' && (
             <div className="mb-3 space-y-2">
               {mode === 'edit' && plan && (
                 <div className="flex flex-wrap items-center gap-2 text-sm"><span className="text-ink-muted">Sender</span>
-                  {SENDERS.map((s) => <button key={s} onClick={() => setSender(s)} className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${sender === s ? 'bg-people text-night-950' : 'border border-night-600 text-ink-muted'}`}>{s}</button>)}
+                  {SENDERS.map((s) => <button key={s} onClick={() => setSender(s)} className={`rounded px-2.5 py-1 text-xs font-semibold ${sender === s ? 'bg-people text-night-950' : 'border border-night-600 text-ink-muted'}`}>{s}</button>)}
                 </div>
               )}
               {mode === 'edit' && !plan && (

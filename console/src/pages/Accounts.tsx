@@ -49,7 +49,7 @@ export default function Accounts() {
                 <td className="px-5 py-3 text-ink-muted">{r.terr || '—'}</td>
                 <td className="px-5 py-3 text-ink-muted">{r.owner || '—'}</td>
                 <td className="px-5 py-3">{r.deal ? <><span className="font-semibold tabular-nums">{money(r.deal.amount)}</span> <span className="text-ink-muted">{STAGES.find((s) => s.id === r.deal.stage)?.name}</span></> : '—'}</td>
-                <td className="px-5 py-3">{r.plan ? <Badge color={r.plan.status === 'proposed' ? '#fbbf24' : r.plan.status === 'rejected' ? '#f87171' : '#34d399'}>v{r.plan.version} {r.plan.status}</Badge> : <span className="text-ink-faint">none</span>}</td>
+                <td className="px-5 py-3">{r.plan ? <Badge color={r.plan.status === 'proposed' ? '#b45309' : r.plan.status === 'rejected' ? '#b91c1c' : '#047857'}>v{r.plan.version} {r.plan.status}</Badge> : <span className="text-ink-faint">none</span>}</td>
                 <td className="px-5 py-3 text-ink-muted">{r.evCount} <span className="text-ink-faint">{r.lastEv ? `· ${ago(r.lastEv)}` : ''}</span></td>
               </tr>
             ))}

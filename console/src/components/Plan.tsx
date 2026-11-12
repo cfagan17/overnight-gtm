@@ -15,7 +15,7 @@ export function PlanView({ plan, contacts = {}, evIndex }: { plan: any; contacts
     return (
       <div className="space-y-2 text-sm">
         {plan.summary && <div className="font-semibold">{plan.summary}</div>}
-        {plan.sender && <div><span className="text-ink-muted">Sender </span><Badge color="#f472b6">{plan.sender.type}</Badge></div>}
+        {plan.sender && <div><span className="text-ink-muted">Sender </span><Badge color="#be185d">{plan.sender.type}</Badge></div>}
       </div>
     );
   }
@@ -38,7 +38,7 @@ export function PlanView({ plan, contacts = {}, evIndex }: { plan: any; contacts
       )}
       {plan.sender && (
         <Section title="Sender">
-          <div className="flex flex-wrap items-baseline gap-2"><Badge color="#f472b6" solid>{plan.sender.type}</Badge><span className="text-ink-muted">{plan.sender.reason}</span></div>
+          <div className="flex flex-wrap items-baseline gap-2"><Badge color="#be185d" solid>{plan.sender.type}</Badge><span className="text-ink-muted">{plan.sender.reason}</span></div>
         </Section>
       )}
       {plan.channel_and_sequence && (
@@ -48,7 +48,7 @@ export function PlanView({ plan, contacts = {}, evIndex }: { plan: any; contacts
             return (
               <li key={s.step} className="flex gap-3">
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-night-700 text-xs font-bold">{s.step}</span>
-                <div><Badge color="#60a5fa">{s.channel}</Badge> <span>{s.purpose}</span>
+                <div><Badge color="#0f766e">{s.channel}</Badge> <span>{s.purpose}</span>
                   {c && <div className="mt-1 text-ink-muted">{c.carries}<Cite ids={c.evidence} evIndex={evIndex} /></div>}</div>
               </li>
             );
@@ -57,7 +57,7 @@ export function PlanView({ plan, contacts = {}, evIndex }: { plan: any; contacts
       )}
       {plan.risks && (
         <Section title="Risks">
-          <ul className="space-y-1.5">{plan.risks.map((r: string, i: number) => <li key={i} className={i === 0 ? 'rounded-lg bg-loop/10 px-3 py-2 text-amber-100' : 'text-ink-muted'}>{r}</li>)}</ul>
+          <ul className="space-y-1.5">{plan.risks.map((r: string, i: number) => <li key={i} className={i === 0 ? 'rounded bg-loop/10 px-3 py-2 text-amber-800' : 'text-ink-muted'}>{r}</li>)}</ul>
         </Section>
       )}
       {plan.what_would_change_it && <Section title="What would change it"><div className="text-ink-muted">{plan.what_would_change_it}</div></Section>}

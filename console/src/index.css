@@ -2,19 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+:root { color-scheme: light; }
 html, body, #root { height: 100%; }
-body { @apply bg-night-900 text-ink font-sans antialiased; }
-::selection { background: rgba(167,139,250,.35); }
-* { scrollbar-width: thin; scrollbar-color: #2a3550 transparent; }
+body { @apply bg-night-900 text-ink font-sans antialiased; font-feature-settings: "tnum" 1; }
+::selection { background: rgba(29,78,216,.18); }
+* { scrollbar-width: thin; scrollbar-color: #c9c9d1 transparent; }
 
-.card { @apply rounded-2xl border border-night-600/70 bg-night-800/80 backdrop-blur; }
+.card { @apply rounded-md border border-night-600 bg-night-800; }
 .card-hover { @apply transition hover:border-night-500 hover:bg-night-750; }
-.label { @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-faint; }
-.btn { @apply inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed; }
-.btn-primary { @apply btn bg-prim text-night-950 hover:bg-violet-300; }
-.btn-ghost { @apply btn border border-night-600 text-ink hover:bg-night-700; }
-.btn-green { @apply btn bg-control text-night-950 hover:bg-emerald-300; }
-.btn-red { @apply btn border border-red-400/40 text-red-300 hover:bg-red-500/10; }
-.input { @apply w-full rounded-xl border border-night-600 bg-night-900 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-prim focus:outline-none; }
-.grid-bg { background-image: radial-gradient(rgba(147,160,187,.08) 1px, transparent 1px); background-size: 22px 22px; }
+.label { @apply text-xs font-medium text-ink-faint; }
+.btn { @apply inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed; }
+.btn-primary { @apply btn bg-ink text-white hover:bg-zinc-700; }
+.btn-ghost { @apply btn border border-night-600 bg-night-800 text-ink hover:bg-night-750; }
+.btn-green { @apply btn bg-control text-white hover:bg-emerald-800; }
+.btn-red { @apply btn border border-red-300 text-red-700 hover:bg-red-50; }
+.input { @apply w-full rounded border border-night-600 bg-night-800 px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-ink focus:outline-none; }

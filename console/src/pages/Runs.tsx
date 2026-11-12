@@ -57,14 +57,14 @@ export function Run() {
   const { r, ev, decs, evid } = data;
   return (
     <Page kicker={<Link to="/runs" className="hover:text-ink">Runs</Link>} title={<>Run #{r.id}</>}
-      actions={<div className="flex flex-wrap gap-2"><LoopBadge loop={r.loop} /><Badge color="#93a0bb">{r.model}</Badge><Badge color="#a78bfa">prompt {r.prompt_version}</Badge><Badge color="#fbbf24">level {r.autonomy_level}</Badge></div>}>
+      actions={<div className="flex flex-wrap gap-2"><LoopBadge loop={r.loop} /><Badge color="#52525b">{r.model}</Badge><Badge color="#1d4ed8">prompt {r.prompt_version}</Badge><Badge color="#b45309">level {r.autonomy_level}</Badge></div>}>
       <div className="mb-6 text-sm text-ink-muted">Started {time(r.started_at)}. {r.tokens_in ? `${r.tokens_in.toLocaleString()} tokens in, ${r.tokens_out.toLocaleString()} out.` : ''} {r.transcript_uri && <>Transcript: <span className="font-mono">{r.transcript_uri}</span></>}</div>
       <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <Card title={`Steps (${ev.length})`} pad={false}>
           <ol className="divide-y divide-night-600/60">{ev.map((e) => (
             <li key={e.seq} className="flex items-center gap-3 px-5 py-2.5 text-sm">
               <span className="w-6 font-mono text-xs text-ink-faint">{e.seq}</span>
-              <Badge color={e.event_type === 'model_turn' ? '#a78bfa' : e.event_type === 'tool_call' ? '#fbbf24' : '#34d399'}>{e.event_type.replace('_', ' ')}</Badge>
+              <Badge color={e.event_type === 'model_turn' ? '#1d4ed8' : e.event_type === 'tool_call' ? '#b45309' : '#047857'}>{e.event_type.replace('_', ' ')}</Badge>
               <span className="font-mono text-xs">{e.name || ''}</span>
             </li>
           ))}</ol>

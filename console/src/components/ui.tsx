@@ -9,7 +9,7 @@ export function Page({ title, kicker, actions, children }: { title: ReactNode; k
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           {kicker && <div className="label mb-2">{kicker}</div>}
-          <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
         </div>
         {actions}
       </div>
@@ -36,35 +36,35 @@ export function Stat({ label, value, sub, color }: { label: string; value: React
   return (
     <div className="card p-5">
       <div className="label">{label}</div>
-      <div className="mt-2 text-3xl font-extrabold tracking-tight" style={color ? { color } : undefined}>{value}</div>
+      <div className="mt-2 text-3xl font-semibold tracking-tight" style={color ? { color } : undefined}>{value}</div>
       {sub && <div className="mt-1 text-sm text-ink-muted">{sub}</div>}
     </div>
   );
 }
 
-export function Badge({ children, color = '#93a0bb', solid = false, className = '' }: { children: ReactNode; color?: string; solid?: boolean; className?: string }) {
+export function Badge({ children, color = '#52525b', solid = false, className = '' }: { children: ReactNode; color?: string; solid?: boolean; className?: string }) {
+  if (solid) return <span className={`inline-flex items-center whitespace-nowrap rounded px-1.5 py-0.5 text-xs font-medium text-white ${className}`} style={{ background: color }}>{children}</span>;
   return (
-    <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold ${className}`}
-      style={solid ? { background: color, color: '#0b1020' } : { color, background: `${color}1f`, boxShadow: `inset 0 0 0 1px ${color}40` }}>
-      {children}
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded border border-night-600 bg-night-800 px-1.5 py-0.5 text-xs font-medium text-ink ${className}`}>
+      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: color }} />{children}
     </span>
   );
 }
 
-export const LoopBadge = ({ loop }: { loop: string }) => <Badge color={LOOP[loop]?.color || '#fbbf24'}>{loopName(loop)}</Badge>;
-export const ActionBadge = ({ action }: { action: string }) => <Badge color="#93a0bb">{ACTION_LABEL[action] || action}</Badge>;
+export const LoopBadge = ({ loop }: { loop: string }) => <Badge color={LOOP[loop]?.color || '#b45309'}>{loopName(loop)}</Badge>;
+export const ActionBadge = ({ action }: { action: string }) => <Badge color="#52525b">{ACTION_LABEL[action] || action}</Badge>;
 
 export function Strength({ s }: { s: string }) {
-  return s === 'strong' ? <Badge color="#34d399">strong</Badge> : <Badge color="#5d6985">weak</Badge>;
+  return s === 'strong' ? <Badge color="#047857">strong</Badge> : <Badge color="#71717a">weak</Badge>;
 }
 
 export function Outcome({ o }: { o: string | null }) {
-  if (!o) return <Badge color="#fbbf24">waiting</Badge>;
-  const c = o === 'accepted' ? '#34d399' : o === 'edited' ? '#fbbf24' : '#f87171';
+  if (!o) return <Badge color="#b45309">waiting</Badge>;
+  const c = o === 'accepted' ? '#047857' : o === 'edited' ? '#b45309' : '#b91c1c';
   return <Badge color={c}>{o}</Badge>;
 }
 
-export function Avatar({ name, color = '#a78bfa', size = 32 }: { name: string; color?: string; size?: number }) {
+export function Avatar({ name, color = '#1d4ed8', size = 32 }: { name: string; color?: string; size?: number }) {
   return (
     <div className="grid shrink-0 place-items-center rounded-full font-bold text-night-950"
       style={{ width: size, height: size, background: color, fontSize: size * 0.38 }}>{initials(name)}</div>
@@ -95,10 +95,10 @@ export function Spinner() {
   return <div className="flex items-center gap-3 p-6 text-sm text-ink-muted"><div className="h-4 w-4 animate-spin rounded-full border-2 border-prim border-t-transparent" />Loading</div>;
 }
 export function Err({ e }: { e: string }) {
-  return <div className="rounded-xl border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-200">{e}</div>;
+  return <div className="rounded-md border border-red-400/30 bg-red-500/10 p-4 text-sm text-red-700">{e}</div>;
 }
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl border border-dashed border-night-600 p-8 text-center text-sm text-ink-muted">{children}</div>;
+  return <div className="rounded-md border border-dashed border-night-600 p-8 text-center text-sm text-ink-muted">{children}</div>;
 }
 
 export function SubjectLink({ type, id, name }: { type: string; id: string; name?: string }) {
@@ -116,7 +116,7 @@ export function Toasts() {
   return (
     <div className="pointer-events-none fixed bottom-5 right-5 z-50 flex flex-col gap-2">
       {items.map((i) => (
-        <div key={i.id} className={`card pointer-events-auto max-w-sm px-4 py-3 text-sm shadow-2xl ${i.kind === 'err' ? 'border-red-400/40 text-red-200' : 'border-control/40'}`}>{i.text}</div>
+        <div key={i.id} className={`card pointer-events-auto max-w-sm px-4 py-3 text-sm shadow-lg ${i.kind === 'err' ? 'border-red-400/40 text-red-700' : 'border-control/40'}`}>{i.text}</div>
       ))}
     </div>
   );
@@ -124,10 +124,10 @@ export function Toasts() {
 
 export function Tabs({ tabs, value, onChange }: { tabs: { id: string; label: ReactNode }[]; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl border border-night-600 bg-night-850 p-1">
+    <div className="mb-4 flex gap-1 overflow-x-auto rounded-md border border-night-600 bg-night-850 p-1">
       {tabs.map((t) => (
         <button key={t.id} onClick={() => onChange(t.id)}
-          className={`whitespace-nowrap rounded-lg px-3.5 py-1.5 text-sm font-semibold transition ${value === t.id ? 'bg-night-700 text-ink' : 'text-ink-muted hover:text-ink'}`}>{t.label}</button>
+          className={`whitespace-nowrap rounded px-3.5 py-1.5 text-sm font-semibold transition ${value === t.id ? 'bg-night-700 text-ink' : 'text-ink-muted hover:text-ink'}`}>{t.label}</button>
       ))}
     </div>
   );

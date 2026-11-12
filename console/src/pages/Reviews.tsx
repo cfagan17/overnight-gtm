@@ -37,7 +37,7 @@ export default function Reviews() {
               {items.map((d) => (
                 <li key={d.decision_id}>
                   <button onClick={() => setParams({ d: String(d.decision_id) })}
-                    className={`block w-full px-4 py-3.5 text-left transition ${d.decision_id === sel ? 'bg-night-700 shadow-[inset_3px_0_0_#a78bfa]' : 'hover:bg-night-750'}`}>
+                    className={`block w-full px-4 py-3.5 text-left transition ${d.decision_id === sel ? 'bg-night-700 shadow-[inset_3px_0_0_#18181b]' : 'hover:bg-night-750'}`}>
                     <div className="flex items-center gap-2"><LoopBadge loop={d.loop} /><span className="ml-auto text-xs text-ink-faint">{ago(d.made_at)}</span></div>
                     <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold">{d.subject_name}<ActionBadge action={d.action} /></div>
                     <div className="mt-0.5 line-clamp-2 text-xs text-ink-muted">{d.rationale}</div>

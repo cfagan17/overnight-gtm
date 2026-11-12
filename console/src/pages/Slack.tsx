@@ -29,16 +29,16 @@ export default function Slack() {
     <Page kicker="Where people actually work" title="The morning digest">
       <p className="-mt-3 mb-6 max-w-3xl text-ink-muted">Reps should not have to open another app. Each morning the Slack app sends every person what is waiting for them, with one-tap accept and reject. Edits open the console. This is a preview of {me?.name.split(' ')[0]}'s message, built from the same queue. The buttons are live.</p>
       <div className="mx-auto max-w-2xl">
-        <div className="overflow-hidden rounded-2xl border border-night-600 bg-[#1a1d21] shadow-2xl">
+        <div className="overflow-hidden rounded-md border border-night-600 bg-[#1a1d21] shadow-lg">
           <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5 text-sm text-white/60"><span className="font-bold text-white"># direct message</span><span>with Overnight</span></div>
           <div className="flex gap-3 p-4">
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-night-800"><svg width="24" height="24" viewBox="0 0 64 64"><circle cx="34" cy="30" r="16" fill="#a78bfa" /><circle cx="41" cy="25" r="14" fill="#141b2e" /><circle cx="46" cy="44" r="3.5" fill="#fbbf24" /></svg></div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded bg-night-800"><svg width="24" height="24" viewBox="0 0 64 64"><circle cx="34" cy="30" r="16" fill="#1d4ed8" /><circle cx="41" cy="25" r="14" fill="#18181b" /><circle cx="46" cy="44" r="3.5" fill="#b45309" /></svg></div>
             <div className="min-w-0 flex-1 text-[15px] text-[#d1d2d3]">
               <div><span className="font-bold text-white">Overnight</span> <span className="ml-1 rounded bg-white/10 px-1 text-[10px] font-bold text-white/60">APP</span> <span className="ml-1 text-xs text-white/40">7:30 AM</span></div>
               <div className="mt-1">Good morning {me?.name.split(' ')[0]}. The loops ran overnight. <b className="text-white">{items.length} {items.length === 1 ? 'thing needs' : 'things need'} you.</b></div>
               <div className="mt-3 space-y-3">
                 {items.slice(0, 6).map((d) => (
-                  <div key={d.decision_id} className="rounded-md border-l-4 bg-white/[.03] p-3" style={{ borderColor: '#a78bfa' }}>
+                  <div key={d.decision_id} className="rounded-md border-l-4 bg-white/[.03] p-3" style={{ borderColor: '#1d4ed8' }}>
                     <div className="text-sm font-bold text-white">{ACTION_LABEL[d.action] || d.action}: {d.subject_name}</div>
                     <div className="mt-0.5 text-xs text-white/50">{loopName(d.loop)}</div>
                     <div className="mt-1.5 line-clamp-3 text-sm">{d.rationale}</div>

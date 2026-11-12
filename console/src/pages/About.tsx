@@ -2,11 +2,11 @@ import { Github } from 'lucide-react';
 import { Card, Page } from '../components/ui';
 
 const LAYERS = [
-  ['5', 'People', 'Review, correct, and decide how far to trust each loop. In Slack day to day, in this console for the full picture.', '#f472b6'],
-  ['4', 'Loops', 'Twelve agent loops, one per Rev Ops function, each a plain-English prompt that runs every night or week.', '#fbbf24'],
-  ['3', 'Primitives', 'Evidence, decisions, strategies, experiments, policies, commitments, runs, skills: the why behind every change.', '#a78bfa'],
-  ['2', 'Control plane', 'Who can see and change what, enforced in Postgres. Agents have no direct write access.', '#34d399'],
-  ['1', 'Ledger', 'Accounts, contacts, deals, contracts, territories. Supabase here, or Salesforce or HubSpot beside it.', '#60a5fa'],
+  ['5', 'People', 'Review, correct, and decide how far to trust each loop. In Slack day to day, in this console for the full picture.', '#be185d'],
+  ['4', 'Loops', 'Twelve agent loops, one per Rev Ops function, each a plain-English prompt that runs every night or week.', '#b45309'],
+  ['3', 'Primitives', 'Evidence, decisions, strategies, experiments, policies, commitments, runs, skills: the why behind every change.', '#1d4ed8'],
+  ['2', 'Control plane', 'Who can see and change what, enforced in Postgres. Agents have no direct write access.', '#047857'],
+  ['1', 'Ledger', 'Accounts, contacts, deals, contracts, territories. Supabase here, or Salesforce or HubSpot beside it.', '#0f766e'],
 ];
 
 export default function About() {
