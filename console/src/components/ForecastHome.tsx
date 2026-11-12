@@ -33,7 +33,7 @@ export default function ForecastHome({ queue }: { queue: any[] }) {
 
   return (
     <div className="mb-6 grid gap-6 xl:grid-cols-[1fr_1.15fr]">
-      <Card title="Forecast: the loop's call against the human call" right={<Badge color="#fbbf24">the loop only observes</Badge>} pad={false}>
+      <Card title="Forecast: the loop's call against the human call" right={<Badge color="#b45309">the loop only observes</Badge>} pad={false}>
         {!data.calls.length ? <div className="px-5 py-6 text-sm text-ink-muted">No forecast call is visible to you yet.</div> : (
           <table className="w-full text-sm">
             <thead><tr className="text-left text-xs text-ink-faint">
@@ -46,7 +46,7 @@ export default function ForecastHome({ queue }: { queue: any[] }) {
                   <td className="px-5 py-3"><div className="font-semibold">{c.territory}</div><div className="text-xs text-ink-faint">{ago(c.observed_at)}</div></td>
                   <td className="px-3 py-3 text-right tabular-nums">{money(c.agent_call_usd)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{money(c.human_call_usd)}</td>
-                  <td className="px-5 py-3 text-right font-bold tabular-nums" style={{ color: c.gap_usd == null ? undefined : Number(c.gap_usd) < 0 ? '#f87171' : '#34d399' }}>
+                  <td className="px-5 py-3 text-right font-bold tabular-nums" style={{ color: c.gap_usd == null ? undefined : Number(c.gap_usd) < 0 ? '#b91c1c' : '#047857' }}>
                     {c.gap_usd == null ? '—' : signed(Number(c.gap_usd))}</td>
                 </tr>
               ))}
@@ -72,7 +72,7 @@ export default function ForecastHome({ queue }: { queue: any[] }) {
             return (
               <li key={f.id}><Link to={inQueue.has(f.id) ? `/reviews?d=${f.id}` : `/accounts/${d.company_id}`} className="block px-5 py-3.5 hover:bg-night-750">
                 <div className="flex flex-wrap items-center gap-2"><span className="text-sm font-bold">{d.name}</span><span className="text-sm tabular-nums text-ink-muted">{money(d.amount)}</span>
-                  <Badge color="#93a0bb">{stageName(d.stage)}</Badge><span className="ml-auto text-xs text-ink-faint">{ago(f.made_at)}</span></div>
+                  <Badge color="#52525b">{stageName(d.stage)}</Badge><span className="ml-auto text-xs text-ink-faint">{ago(f.made_at)}</span></div>
                 <div className="mt-1 text-sm text-ink">{f.payload?.risk || f.rationale}</div>
                 {ev.map((e: any) => <div key={e.id} className="mt-1 text-xs text-ink-muted"><span className="text-ink-faint">{String(e.kind).replace(/_/g, ' ')}:</span> {e.claim}</div>)}
               </Link></li>

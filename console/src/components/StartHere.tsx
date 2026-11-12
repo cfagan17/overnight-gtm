@@ -45,7 +45,7 @@ export default function StartHere({ queue }: { queue: any[] }) {
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {stops.map((s) => (
-          <button key={s.n} disabled={busy} onClick={s.go} className="rounded-xl bg-night-850 p-4 text-left hover:bg-night-750 disabled:opacity-60">
+          <button key={s.n} disabled={busy} onClick={s.go} className="rounded-md bg-night-850 p-4 text-left hover:bg-night-750 disabled:opacity-60">
             <div className="flex items-baseline gap-2"><span className="text-xs font-bold text-prim">{s.n}</span><span className="text-sm font-bold">{s.title}</span></div>
             <div className="mt-1 text-sm text-ink-muted">{s.note}</div>
             <div className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-prim">{s.cta}<ArrowRight size={13} /></div>
