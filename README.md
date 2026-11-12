@@ -4,6 +4,8 @@
 
 **Live demo:** [overnight-gtm.vercel.app](https://overnight-gtm.vercel.app). Pick one of six people at a fictional company and see the same system through their access. No account or password needed.
 
+![The Overnight console, signed in as an account executive in the demo](docs/console.png)
+
 Most companies use AI as a feature: draft the email, summarize the call, update the CRM. Overnight is for putting AI at the center of how go to market makes decisions, safely. Every Rev Ops function becomes a loop that reads all of the data on a schedule and proposes what to do next. People review the work, and each loop climbs a ladder of **earned autonomy** only as fast as its record allows.
 
 Most AI sales tools bolt a feature onto a CRM built for people typing into forms. This repo starts from a different question. If a capable model sits at the center of go-to-market, reading every account, conversation and partner signal and doing as much of the work as it reliably can, what does the system underneath need to look like?
