@@ -30,14 +30,14 @@ export default function Pipeline() {
   return (
     <Page kicker="Layer 1, the ledger" title="Pipeline">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[['commit', '#34d399'], ['best_case', '#60a5fa'], ['pipeline', '#93a0bb'], ['omitted', '#5d6985']].map(([c, col]) => (
-          <div key={c} className="card p-5"><div className="label">{c.replace('_', ' ')}</div><div className="mt-2 text-2xl font-extrabold tabular-nums" style={{ color: col }}>{money(byCat(c))}</div></div>
+        {[['commit', '#047857'], ['best_case', '#0f766e'], ['pipeline', '#52525b'], ['omitted', '#71717a']].map(([c, col]) => (
+          <div key={c} className="card p-5"><div className="label">{c.replace('_', ' ')}</div><div className="mt-2 text-2xl font-semibold tabular-nums" style={{ color: col }}>{money(byCat(c))}</div></div>
         ))}
       </div>
       {latestCalls.length > 0 && (
-        <Card className="mt-6" title="The forecast loop's independent call, next to the human one" right={<Badge color="#fbbf24">level 0: observe only</Badge>}>
+        <Card className="mt-6" title="The forecast loop's independent call, next to the human one" right={<Badge color="#b45309">level 0: observe only</Badge>}>
           <div className="grid gap-3 md:grid-cols-2">{latestCalls.map(({ t, call }) => (
-            <div key={t.id} className="rounded-xl bg-night-850 p-4"><div className="text-sm font-bold">{t.name}</div><div className="mt-1 text-sm text-ink-muted">{call.claim.replace('Agent forecast call: ', 'Agent: ')}</div><div className="mt-1 text-xs text-ink-faint">{ago(call.observed_at)}</div></div>
+            <div key={t.id} className="rounded-md bg-night-850 p-4"><div className="text-sm font-bold">{t.name}</div><div className="mt-1 text-sm text-ink-muted">{call.claim.replace('Agent forecast call: ', 'Agent: ')}</div><div className="mt-1 text-xs text-ink-faint">{ago(call.observed_at)}</div></div>
           ))}</div>
         </Card>
       )}
@@ -51,8 +51,8 @@ export default function Pipeline() {
               <div className="space-y-3">{ds.map((d) => (
                 <Link key={d.id} to={`/accounts/${d.company_id}`} className="card card-hover block p-4">
                   <div className="truncate text-sm font-semibold">{co[d.company_id]}</div>
-                  <div className="mt-1 text-lg font-extrabold tabular-nums">{money(d.amount)}</div>
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5"><Badge color="#93a0bb">{d.forecast_category}</Badge>{risky.has(String(d.id)) && <Badge color="#f87171">risk flagged</Badge>}</div>
+                  <div className="mt-1 text-lg font-semibold tabular-nums">{money(d.amount)}</div>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5"><Badge color="#52525b">{d.forecast_category}</Badge>{risky.has(String(d.id)) && <Badge color="#b91c1c">risk flagged</Badge>}</div>
                   <div className="mt-3 flex items-center gap-2 text-xs text-ink-muted"><Avatar name={sname[d.sales_id] || '?'} size={20} /><span className="truncate">{sname[d.sales_id]}</span><span className="ml-auto whitespace-nowrap">{d.expected_closing_date}</span></div>
                 </Link>
               ))}</div>

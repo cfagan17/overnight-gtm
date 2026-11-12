@@ -15,16 +15,14 @@ export default function Login() {
   const go = async (e: string, p?: string) => { setBusy(e); setErr(await signInAs(e, p)); setBusy(null); };
 
   return (
-    <div className="grid-bg relative min-h-full overflow-hidden">
-      <div className="pointer-events-none absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-prim/20 blur-[120px]" />
-      <div className="pointer-events-none absolute -bottom-40 right-0 h-[420px] w-[420px] rounded-full bg-loop/10 blur-[120px]" />
+    <div className="relative min-h-full">
       <div className="relative mx-auto max-w-6xl px-5 py-10 sm:py-16">
         <div className="flex items-center justify-between"><Logo />
           <a className="btn-ghost" href="https://github.com/cfagan17/overnight-gtm" target="_blank" rel="noreferrer"><Github size={16} />GitHub</a></div>
         <div className="mt-14 max-w-3xl">
-          <div className="label mb-4 text-prim">The open-source AI operating layer for go to market</div>
-          <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">Your GTM loops ran overnight.<br /><span className="text-prim">Here is what they decided, and why.</span></h1>
-          <p className="mt-6 max-w-2xl text-lg text-ink-muted">Twelve agent loops read every account, call and signal each night, record their reasoning as evidence and decisions, and earn autonomy only as fast as people's reviews allow. Pick a person to see the system the way they do. Row-level security decides what each one sees.</p>
+          <div className="label mb-4">The open-source AI operating layer for go to market</div>
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-[44px] sm:leading-[1.1]">Your GTM loops ran overnight.<br /><span className="text-ink-muted">Here is what they decided, and why.</span></h1>
+          <p className="mt-5 max-w-2xl text-base text-ink-muted">Twelve agent loops read every account, call and signal each night, record their reasoning as evidence and decisions, and earn autonomy only as fast as people's reviews allow. Pick a person to see the system the way they do. Row-level security decides what each one sees.</p>
         </div>
         {DEMO ? (
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -32,7 +30,7 @@ export default function Login() {
               <button key={p.email} onClick={() => go(p.email)} disabled={!!busy}
                 className="card card-hover group p-5 text-left">
                 <div className="flex items-center gap-3"><Avatar name={p.name} color={p.color} size={44} />
-                  <div><div className="text-lg font-bold">{p.name}</div><div className="text-sm text-ink-muted">{p.role}</div></div></div>
+                  <div><div className="text-base font-semibold">{p.name}</div><div className="text-sm text-ink-muted">{p.role}</div></div></div>
                 <p className="mt-4 text-sm text-ink-muted">{p.see}</p>
                 <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-prim">{busy === p.email ? 'Signing in…' : 'Sign in as ' + p.name.split(' ')[0]}<ArrowRight size={15} className="transition group-hover:translate-x-1" /></div>
               </button>
@@ -45,7 +43,7 @@ export default function Login() {
             <button className="btn-primary w-full justify-center">Sign in</button>
           </form>
         )}
-        {err && <div className="mt-4 text-sm text-red-300">{err}</div>}
+        {err && <div className="mt-4 text-sm text-red-700">{err}</div>}
         <p className="mt-10 text-xs text-ink-faint">Demo data for a fictional company, Northwind Data. Anything you do here is real in the demo database and is reset regularly.</p>
       </div>
     </div>

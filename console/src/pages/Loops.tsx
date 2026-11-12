@@ -37,20 +37,20 @@ export default function Loops() {
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: l.color }} />
               <div className="flex items-start justify-between gap-3">
                 <div><div className="label" style={{ color: l.color }}>{l.area}</div><div className="mt-1 text-lg font-bold">{l.name}</div></div>
-                <Badge color="#93a0bb">{l.cadence}</Badge>
+                <Badge color="#52525b">{l.cadence}</Badge>
               </div>
               <p className="mt-2 text-sm text-ink-muted">{l.job}</p>
               {d && <div className="mt-4 flex items-center justify-between"><Ladder level={d.autonomy_level} max={d.max_autonomy} /><span className="text-xs font-semibold text-loop">{LEVELS[d.autonomy_level]}</span></div>}
-              <div className="mt-4"><Bar parts={[{ v: n('accepted'), c: '#34d399', label: 'accepted' }, { v: n('edited'), c: '#fbbf24', label: 'edited' }, { v: n('rejected'), c: '#f87171', label: 'rejected' }]} /></div>
+              <div className="mt-4"><Bar parts={[{ v: n('accepted'), c: '#047857', label: 'accepted' }, { v: n('edited'), c: '#b45309', label: 'edited' }, { v: n('rejected'), c: '#b91c1c', label: 'rejected' }]} /></div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
                 <span>{ds.length} reviewed, {ds.length ? pct(n('accepted') / ds.length) : '—'} as is</span>
                 {rp && <span>replay {Number(rp.score).toFixed(2)}</span>}
                 <span>last run {ago(last?.last_run_at)}</span>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {d && d.max_autonomy <= 2 && <Badge color="#f472b6">capped at 2: needs a human signature</Badge>}
-                {v ? <Badge color="#f87171">{v} violation, 60 days</Badge> : null}
-                {pending ? <Badge color="#a78bfa">prompt edit waiting</Badge> : null}
+                {d && d.max_autonomy <= 2 && <Badge color="#be185d">capped at 2: needs a human signature</Badge>}
+                {v ? <Badge color="#b91c1c">{v} violation, 60 days</Badge> : null}
+                {pending ? <Badge color="#1d4ed8">prompt edit waiting</Badge> : null}
               </div>
             </Link>
           );

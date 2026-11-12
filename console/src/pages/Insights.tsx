@@ -27,7 +27,7 @@ export default function Insights() {
     <Page kicker="The primitives are a data foundation" title="Insights">
       <p className="-mt-3 mb-6 max-w-3xl text-ink-muted">Every answer here is a plain SQL view over the primitives, filtered by your own access. The same queries are in the repo under <span className="font-mono text-ink">examples/queries</span>, for anyone to run or hand to an AI.</p>
       <Card title="Did the model upgrade help? Accepted as is, by loop and model" className="mb-6">
-        <div className="mb-4 flex gap-4 text-xs">{models.map((m, i) => <span key={m} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: i ? '#a78bfa' : '#5d6985' }} /><span className="font-mono">{m}</span></span>)}</div>
+        <div className="mb-4 flex gap-4 text-xs">{models.map((m, i) => <span key={m} className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm" style={{ background: i ? '#1d4ed8' : '#71717a' }} /><span className="font-mono">{m}</span></span>)}</div>
         {!models.length && <div className="text-sm text-ink-muted">Run history is visible to owners, managers and read-only users. Switch to Sam or Morgan to see how each model did.</div>}
         <div className="space-y-3">{LOOPS.map((l) => {
           const vals = models.map((m) => byLoopModel(l.loop, m));
@@ -36,7 +36,7 @@ export default function Insights() {
             <div key={l.loop} className="grid grid-cols-[180px_1fr] items-center gap-4">
               <div className="truncate text-sm font-semibold">{l.name}</div>
               <div className="space-y-1">{vals.map((v, i) => (
-                <div key={i} className="flex items-center gap-2"><div className="h-2.5 flex-1 rounded-full bg-night-700"><div className="h-2.5 rounded-full" style={{ width: `${(v || 0) * 100}%`, background: i ? '#a78bfa' : '#5d6985' }} /></div><span className="w-14 text-right text-xs tabular-nums text-ink-muted">{v == null ? 'too few' : pct(v)}</span></div>
+                <div key={i} className="flex items-center gap-2"><div className="h-2.5 flex-1 rounded-full bg-night-700"><div className="h-2.5 rounded-full" style={{ width: `${(v || 0) * 100}%`, background: i ? '#1d4ed8' : '#71717a' }} /></div><span className="w-14 text-right text-xs tabular-nums text-ink-muted">{v == null ? 'too few' : pct(v)}</span></div>
               ))}</div>
             </div>
           );
@@ -58,7 +58,7 @@ export default function Insights() {
             return (
               <li key={i} className="px-5 py-3">
                 <div className="flex items-center gap-2 text-sm"><span className="font-semibold">{e.kind.replace(/_/g, ' ')}</span><Strength s={e.strength} /><span className="ml-auto text-xs tabular-nums text-ink-muted">{pct(e.in_accepted / t)} accepted, {t} uses</span></div>
-                <div className="mt-2"><Bar parts={[{ v: e.in_accepted, c: '#34d399' }, { v: e.in_edited, c: '#fbbf24' }, { v: e.in_rejected, c: '#f87171' }]} /></div>
+                <div className="mt-2"><Bar parts={[{ v: e.in_accepted, c: '#047857' }, { v: e.in_edited, c: '#b45309' }, { v: e.in_rejected, c: '#b91c1c' }]} /></div>
               </li>
             );
           })}</ul>
